@@ -1,0 +1,33 @@
+mutation CreateRecommendationForUser($userId: UUID!, $careerPathId: UUID!, $description: String!, $link: String, $relevanceScore: Float!, $title: String!, $type: String!) @auth(level: USER) {
+  recommendation_insert(data: {userId: $userId, careerPathId: $careerPathId, description: $description, link: $link, relevanceScore: $relevanceScore, title: $title, type: $type})
+}
+
+query ListCareerPaths @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  careerPaths {
+    id
+    name
+    description
+    typicalEducation
+    typicalSkills
+    relatedJobTitles
+  }
+}
+
+mutation UpdateInterviewQuestion($id: UUID!, $aiFeedback: String, $userResponse: String) @auth(level: USER) {
+  interviewQuestion_update(key: {id: $id}, data: {aiFeedback: $aiFeedback, userResponse: $userResponse})
+}
+
+query GetInterviewSessionForUser($userId: UUID!) @auth(level: USER) {
+  interviewSessions(where: {userId: {eq: $userId}}) {
+    id
+    careerPath {
+      id
+      name
+    }
+    sessionDate
+    score
+    feedbackSummary
+    durationMinutes
+    aiModelUsed
+  }
+}

@@ -1,0 +1,88 @@
+mutation CreateDemoData @transaction @auth(level: PUBLIC, insecureReason: "This operation is for seeding demo data and is safe to expose to the public.") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      displayName: "demouser1",
+      email: "demouser1@example.com",
+      userType: "student"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "demouser2",
+      email: "demouser2@example.com",
+      userType: "teacher"
+    }
+  ])
+  careerPath_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      name: "Software Engineer",
+      description: "Develops software applications",
+      typicalSkills: ["coding", "problem solving"],
+      relatedJobTitles: ["Software Developer", "Backend Engineer"]
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440003",
+      name: "Data Scientist",
+      description: "Analyzes data to extract insights",
+      typicalSkills: ["statistics", "machine learning"],
+      relatedJobTitles: ["Machine Learning Engineer", "Data Analyst"]
+    }
+  ])
+  recommendation_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440004",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      careerPathId: "550e8400-e29b-41d4-a716-446655440002",
+      title: "Learn Python",
+      description: "A great resource to start learning Python",
+      type: "Course",
+      relevanceScore: 0.8
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440005",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      careerPathId: "550e8400-e29b-41d4-a716-446655440003",
+      title: "Data Science Handbook",
+      description: "Comprehensive guide for data science",
+      type: "Book",
+      relevanceScore: 0.9
+    }
+  ])
+  interviewSession_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440006",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      careerPathId: "550e8400-e29b-41d4-a716-446655440002",
+      durationMinutes: 60,
+      feedbackSummary: "Good performance overall",
+      score: 75,
+      sessionDate: "2024-01-20T10:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440007",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      careerPathId: "550e8400-e29b-41d4-a716-446655440003",
+      durationMinutes: 45,
+      feedbackSummary: "Needs improvement in statistics",
+      score: 60,
+      sessionDate: "2024-01-22T14:00:00Z"
+    }
+  ])
+  interviewQuestion_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440008",
+      interviewSessionId: "550e8400-e29b-41d4-a716-446655440006",
+      orderInSession: 1,
+      questionText: "Explain the concept of inheritance in OOP",
+      aiFeedback: "Good explanation",
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440009",
+      interviewSessionId: "550e8400-e29b-41d4-a716-446655440007",
+      orderInSession: 1,
+      questionText: "What are the assumptions of linear regression?",
+      aiFeedback: "Missed some key assumptions",
+    }
+  ])
+}

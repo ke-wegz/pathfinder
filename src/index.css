@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Add a base font or global styles if you want, but the above 3 are mandatory */
+body {
+  background-color: #f8fafc; /* slate-50 */
+}

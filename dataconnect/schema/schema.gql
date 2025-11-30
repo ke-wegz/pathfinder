@@ -1,0 +1,45 @@
+type User @table {
+  displayName: String!
+  email: String!
+  userType: String!
+  photoUrl: String
+  educationLevel: String
+  currentOccupation: String
+  desiredIndustries: [String]
+}
+
+type CareerPath @table {
+  name: String!
+  description: String!
+  typicalEducation: String
+  typicalSkills: [String]
+  relatedJobTitles: [String]
+}
+
+type InterviewSession @table {
+  user: User
+  careerPath: CareerPath
+  sessionDate: Timestamp!
+  durationMinutes: Int!
+  feedbackSummary: String!
+  score: Float
+  aiModelUsed: String
+}
+
+type InterviewQuestion @table {
+  interviewSession: InterviewSession
+  questionText: String!
+  orderInSession: Int!
+  userResponse: String
+  aiFeedback: String
+}
+
+type Recommendation @table {
+  user: User
+  careerPath: CareerPath
+  type: String!
+  title: String!
+  description: String!
+  link: String
+  relevanceScore: Float
+}
