@@ -1,0 +1,286 @@
+ 
+$70k - $100k
+${companyName} ${location} careers jobs
+${exp.title} — ${exp.company}
+${provider} login coming soon!
+${provider} signup coming soon!
+${resourceName} ${provider} course
+${title} ${provider}
+-
+.menu-btn
+.mobile-menu
+/community/posts
+/community/posts/${postId}
+/community/posts/${postId}/comments
+/community/posts/${postId}/like
+/cv
+/cv/generate
+/goals
+/goals/${editingGoal._id}
+/goals/${goal._id}
+/interview/message
+/interview/start
+/notifications
+/recommendations
+/recommendations/generate
+/users/profile
+/users/register
+@
+AI Career Interview
+AI Interview
+AI-Powered Career Guidance
+AI-Powered Matching
+Account created successfully! Redirecting...
+Achievements
+Achievements & Badges
+Active Discussions
+Add Goal
+Add New Goal
+Add Your First Goal
+Advanced algorithms analyze your unique profile for perfect career fits.
+Alerts
+All
+All Industries
+All Topics
+Already have an account?
+An error occurred while generating your CV. Please try again.
+Are you sure you want to delete this post?
+Based on your skills, interests, and goals
+Basic Information
+Be respectful and kind
+Be the first to start a conversation!
+Browse Learning Resources
+Browse Resources
+CV Builder
+Cancel
+Career Goals
+Career Match
+Career Path
+Career Paths
+Career Readiness Score
+Career Title
+Career {{count}}
+Chat with our AI in a natural conversation about your goals and preferences.
+Clear All
+Click on any job listing to see full details and apply
+Community
+Community Forums
+Community Guidelines
+Community Stats
+Complete your AI Interview to get personalized career recommendations based on your skills, interests, and goals.
+Comprehensive tools and resources to guide your career journey.
+Confirm Password
+Connect with peers and mentors in your target industries.
+Connect with peers, share insights, and grow together
+Continue with 5 more questions
+Create Account
+Create New Post
+Create Post
+Create Profile
+Create Your Account
+Create a professional CV from your profile data
+Creating account...
+Creative
+Curated courses and certifications to build required skills.
+Curated courses, books, and tools for your career journey.
+Current Goals
+Dashboard
+Delete
+Delete all notifications? This action cannot be undone.
+Don't have an account?
+Download PDF
+Download Roadmap
+Download Roadmap as PDF
+Edit
+Edit Goal
+Edit Profile
+Education
+Education & Experience
+Email Address
+Enable Push Notifications
+Enabling...
+Enter new skill:
+Everything You Need to Succeed
+Failed to create account
+Failed to save changes.
+Finance
+Find Your Perfect
+Find your next career opportunity
+Follow your personalized roadmap with resources and community support.
+Forgot password?
+Four simple steps to discover your ideal career path and get actionable guidance.
+Full Name
+Generate CV
+Generating...
+Get Recommendations
+Get Started
+Get Started Free
+Get my recommendations
+Goal Reminder
+Goal Status
+Goal Tracking
+Goals
+Goals & Milestones
+Goals Completed
+Growth
+Healthcare
+Help others grow
+Here's your career progress overview
+Hide
+How PathFinder AI Works
+I agree to the
+Interests
+Interview
+Interview Complete! 🎉
+Invalid email or password
+Job Search
+Join Community
+Join thousands of professionals who discovered their ideal careers with PathFinder AI.
+Just now
+Key Skills
+Learning Paths
+Learning Resources
+Local Companies
+Location
+Log in
+Login successful! Redirecting...
+Logout
+Manage your personal information and career preferences
+Management
+Mark all as read
+Marketing
+Monthly Progress
+My Profile
+Name
+Name must be at least 2 characters
+No Career Recommendations Yet
+No comments yet. Be the first!
+No goals found
+No jobs found
+No matches found
+No notifications
+No posts found
+No spam or self-promotion
+Notifications
+Notifications enabled! We will keep you updated.
+Online
+Or continue with
+Overall Progress
+Password
+Password must be at least 8 characters with letters and numbers
+Passwords do not match
+Path-specific resources generated from your current career recommendations.
+PathFinder AI - Roadmap
+PathFinder AI - Roadmaps
+PathFinder AI uses advanced artificial intelligence to analyze your skills, interests, and goals—then guides you toward a fulfilling career with personalized recommendations.
+Personalized career plans (AI interview)
+Personalized roadmap for {{title}}
+Please agree to the Terms of Service and Privacy Policy
+Please enter a valid email address
+Please fill in all fields
+Post
+Posting...
+Posts Today
+Privacy First
+Privacy Policy
+Profile
+Progress
+Progress Dashboard
+Progress by Category
+Push Notifications Enabled
+Quick Actions
+Read
+Ready to Find Your Path?
+Real-time salary data and growth projections for every recommendation.
+Receive personalized career matches with detailed insights and salary data.
+Recommendation {{count}}
+Recommendations
+Refresh
+Remember me
+Remove this recommendation and its resources?
+Resource Hub
+Resources
+Roadmap
+Salary Insights
+Salary Range
+Sales
+Save Changes
+Saved in the Career Paths tab
+Saving...
+Search
+Search Jobs
+Search careers...
+Search posts, topics, or authors...
+See How It Works
+Select a job
+Send Goal Reminder
+Set milestones and monitor your progress with visual dashboards.
+Set up your account and share your background, education, and interests.
+Settings
+Share valuable insights
+Share your thoughts, questions, or experiences...
+Sign In
+Sign Out
+Sign in
+Sign in to continue your career journey
+Sign out
+Sign up for free
+Signing in...
+Skills
+Soft Skills:
+Sort by Match
+Sort by Salary
+Start AI Interview
+Start by adding your first goal
+Start your journey to finding the perfect career path
+Step
+Step {{count}}
+Take AI Interview
+Technical:
+Technology
+Terms of Service
+Theme
+This will delete all your saved recommendations. Do you want to continue?
+Top Contributors
+Topic
+Total Members
+Track Progress
+Track your academic and career progress
+Trending Topics
+Try adjusting your search criteria
+Try adjusting your search or filter criteria
+Unread
+View Details
+View Recommendations
+View Your Recommendations
+Visual overview of your career journey
+We will keep you updated on your career journey.
+Weekly Activity
+Welcome Back
+Welcome back
+Welcome to PathFinder AI!
+What's on your mind?
+Write a comment...
+You have active goals next
+You have no active goals. Head to the Goals tab to set some!
+You're all caught up! New notifications will appear here.
+Your Career Matches
+Your browser does not support notifications.
+Your data is encrypted and never shared without consent.
+Your personalized career recommendations are ready!
+and
+helvetica
+recommendationsUpdated
+settings.language
+settings.languageDescription
+settings.save
+settings.saveError
+settings.saved
+settings.saving
+settings.title
+unread notifications
+{{count}} contributions
+{{count}} posts
+{{count}}h ago
+{{count}}m ago
+• ${w}
