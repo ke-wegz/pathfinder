@@ -121,6 +121,48 @@ const backoffDelayMs = (attempt, retryAfterMs) => {
   return Math.min(1000 * 2 ** attempt, 16_000);
 };
 
+const usageTracker = {
+  Groq: { requests: 0, promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+  Cerebras: { requests: 0, promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+  OpenRouter: { requests: 0, promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+};
+
+const trackUsage = (providerName, usage) => {
+  if (!usageTracker[providerName]) {
+    usageTracker[providerName] = { requests: 0, promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+  }
+  
+  usageTracker[providerName].requests += 1;
+  
+  if (usage) {
+    const pTokens = usage.prompt_tokens || 0;
+    const cTokens = usage.completion_tokens || 0;
+    const tTokens = usage.total_tokens || (pTokens + cTokens);
+    
+    usageTracker[providerName].promptTokens += pTokens;
+    usageTracker[providerName].completionTokens += cTokens;
+    usageTracker[providerName].totalTokens += tTokens;
+    
+    console.log(`\n=================== [AI Usage Stats: ${providerName}] ===================`);
+    console.log(`  This Request:`);
+    console.log(`    - Prompt Tokens:     ${pTokens}`);
+    console.log(`    - Completion Tokens: ${cTokens}`);
+    console.log(`    - Total Tokens:      ${tTokens}`);
+    console.log(`  Cumulative Usage:`);
+    console.log(`    - Total Requests:    ${usageTracker[providerName].requests}`);
+    console.log(`    - Prompt Tokens:     ${usageTracker[providerName].promptTokens}`);
+    console.log(`    - Completion Tokens: ${usageTracker[providerName].completionTokens}`);
+    console.log(`    - Total Tokens:      ${usageTracker[providerName].totalTokens}`);
+    console.log(`========================================================================\n`);
+  } else {
+    console.log(`\n=================== [AI Usage Stats: ${providerName}] ===================`);
+    console.log(`  This Request: Usage metrics not returned by provider.`);
+    console.log(`  Cumulative Usage:`);
+    console.log(`    - Total Requests:    ${usageTracker[providerName].requests}`);
+    console.log(`========================================================================\n`);
+  }
+};
+
 const callProviderOnce = async (provider, requestBody, timeoutMs) => {
   const apiKey = process.env[provider.keyEnv];
   if (!apiKey) {
@@ -157,7 +199,7 @@ const callProviderOnce = async (provider, requestBody, timeoutMs) => {
     throw err;
   }
 
-  return { content, provider };
+  return { content, provider, usage: response.data?.usage };
 };
 
 const callProviderWithRetries = async (provider, requestBody, timeoutMs) => {
@@ -174,6 +216,7 @@ const callProviderWithRetries = async (provider, requestBody, timeoutMs) => {
       const result = await callProviderOnce(provider, requestBody, timeoutMs);
       if (result.skipped) return null;
       console.log(`[AI] Success via ${provider.name} (${provider.model})`);
+      trackUsage(provider.name, result.usage);
       return result.content;
     } catch (error) {
       lastError = error;
@@ -234,15 +277,26 @@ const generateAIResponse = async (prompt, options = {}) => {
   const errors = [];
   let sawAuthError = false;
 
-  for (const provider of PROVIDERS) {
+  for (let i = 0; i < PROVIDERS.length; i++) {
+    const provider = PROVIDERS[i];
     const body = { ...requestBody, model: provider.model };
 
     try {
+      console.log(`[AI] Sending request to ${provider.name} (${provider.model})...`);
       const content = await callProviderWithRetries(provider, body, timeoutMs);
       if (content) return content;
     } catch (error) {
       if (error.status === 401) sawAuthError = true;
       errors.push({ provider: provider.name, message: error.message });
+
+      const nextProvider = PROVIDERS[i + 1];
+      if (nextProvider) {
+        console.warn(`\n[AI ALERT] ${provider.name} failed (${error.message}).`);
+        console.warn(`[AI ALERT] Switching to next available provider: ${nextProvider.name} (${nextProvider.model})...\n`);
+      } else {
+        console.error(`\n[AI ALERT] ${provider.name} failed (${error.message}).`);
+        console.error(`[AI ALERT] All available fallback providers have been exhausted.\n`);
+      }
     }
   }
 
