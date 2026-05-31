@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Define gorgeous gradients -->
+  <defs>
+    <linearGradient id="compass-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" /> <!-- primary-600 -->
+      <stop offset="100%" stop-color="#06b6d4" /> <!-- secondary-600 -->
+    </linearGradient>
+    <linearGradient id="needle-north" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" /> <!-- red-500 -->
+      <stop offset="100%" stop-color="#b91c1c" /> <!-- red-700 -->
+    </linearGradient>
+    <linearGradient id="needle-south" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1" /> <!-- slate-300 -->
+      <stop offset="100%" stop-color="#94a3b8" /> <!-- slate-400 -->
+    </linearGradient>
+  </defs>
+
+  <!-- Outer circular ring with premium gradient -->
+  <circle cx="12" cy="12" r="10" stroke="url(#compass-gradient)" stroke-width="2.2" fill="none" />
+  
+  <!-- Subtle inner dial ring -->
+  <circle cx="12" cy="12" r="7.5" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="1 2" fill="none" opacity="0.5" />
+
+  <!-- Direction markings (N, S, E, W ticks) -->
+  <line x1="12" y1="2" x2="12" y2="4.5" stroke="url(#compass-gradient)" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="12" y1="19.5" x2="12" y2="22" stroke="#94a3b8" stroke-width="1" stroke-linecap="round" />
+  <line x1="2" y1="12" x2="4.5" y2="12" stroke="#94a3b8" stroke-width="1" stroke-linecap="round" />
+  <line x1="19.5" y1="12" x2="22" y2="12" stroke="#94a3b8" stroke-width="1" stroke-linecap="round" />
+
+  <!-- Central needle pin -->
+  <circle cx="12" cy="12" r="1.5" fill="#1e293b" />
+
+  <!-- Compass Needle (North pointing North-East, South pointing South-West) -->
+  <!-- North needle pointer (Red/Orange) -->
+  <polygon points="12,12 11.2,11.2 16.5,7.5 12.8,12.8" fill="url(#needle-north)" />
+  <!-- South needle pointer (Slate/Gray) -->
+  <polygon points="12,12 12.8,12.8 7.5,16.5 11.2,11.2" fill="url(#needle-south)" />
+</svg>
