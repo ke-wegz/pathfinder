@@ -35,7 +35,16 @@ exports.generateRecommendation = async (userId, sessionId) => {
 
   const session = sessionDoc.data();
   if (session.userId !== userId) throw new Error('Unauthorized');
-  if (!session.completed) throw new Error('Cannot generate recommendation for incomplete session');
+  if (!session.completed) {
+    console.log(`[Recommendations] Session ${sessionId} was not marked as completed. Forcing complete: true.`);
+    await db.collection('interview_sessions').doc(sessionId).update({
+      completed: true,
+      phase: 'complete',
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    session.completed = true;
+    session.phase = 'complete';
+  }
 
   const profileDoc = await db.collection('profiles').doc(userId).get();
   const profile = profileDoc.exists ? profileDoc.data() : {};
