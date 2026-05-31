@@ -12,7 +12,7 @@ const apiLimiter = rateLimit({
 // Stricter rate limiter for AI/OpenRouter endpoints
 const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Limit each IP to 20 requests per hour for AI endpoints
+  max: 100, // Limit each IP to 20 requests per hour for AI endpoints
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many AI requests, please try again in an hour.' }
