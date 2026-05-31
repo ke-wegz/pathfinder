@@ -423,7 +423,7 @@ const Interview = () => {
 
             {/* Premium Glassmorphic Left Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-gray-900 border-r border-gray-200/60 dark:border-gray-800/60 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+                className={`fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-gray-950 border-r border-gray-200/60 dark:border-gray-900/60 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
                     isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
@@ -483,8 +483,8 @@ const Interview = () => {
                                     disabled={isLoading}
                                     className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 flex flex-col gap-1.5 group relative overflow-hidden ${
                                         isSelected
-                                            ? 'bg-primary-50/70 dark:bg-primary-950/20 border-primary-500/50 dark:border-primary-500/40 text-primary-900 dark:text-primary-100 shadow-sm'
-                                            : 'bg-white dark:bg-gray-900 hover:bg-gray-50/60 dark:hover:bg-gray-800/40 border-gray-100 dark:border-gray-800/80 hover:border-gray-200 dark:hover:border-gray-700 text-gray-700 dark:text-gray-300'
+                                            ? 'bg-primary-50/70 dark:bg-primary-900/30 border-primary-500/50 dark:border-primary-500/40 text-primary-900 dark:text-primary-100 shadow-sm'
+                                            : 'bg-white dark:bg-gray-950 hover:bg-gray-50/60 dark:hover:bg-gray-900/40 border-gray-100 dark:border-gray-900/50 hover:border-gray-200 dark:hover:border-gray-700 text-gray-700 dark:text-gray-300'
                                     }`}
                                 >
                                     {/* Selected indicators */}
@@ -548,7 +548,7 @@ const Interview = () => {
                         {/* Mobile Drawer Trigger */}
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="lg:hidden inline-flex items-center justify-center p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
+                            className="lg:hidden inline-flex items-center justify-center p-2.5 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition shadow-sm"
                         >
                             <Menu size={20} />
                             <span className="text-xs font-semibold ml-2">{t('History', 'History')}</span>
@@ -573,7 +573,7 @@ const Interview = () => {
 
                     {/* Welcoming Screen Slate or Main Chat Board */}
                     {sessionId === null ? (
-                        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-200/80 dark:border-gray-700/80 p-8 sm:p-10 text-center max-w-2xl mx-auto my-6 transition-all duration-300 hover:shadow-lg">
+                        <div className="bg-white dark:bg-gray-950/40 backdrop-blur-md rounded-3xl shadow-md border border-gray-200/80 dark:border-gray-900/80 p-8 sm:p-10 text-center max-w-2xl mx-auto my-6 transition-all duration-300 hover:shadow-lg">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center text-white mx-auto mb-6 shadow-md animate-bounce" style={{ animationDuration: '3s' }}>
                                 <Sparkles size={30} />
                             </div>
@@ -621,7 +621,7 @@ const Interview = () => {
                             </button>
                         </div>
                     ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="bg-white dark:bg-gray-950/40 backdrop-blur-md rounded-2xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
                             <div className="h-[500px] overflow-y-auto p-6 space-y-4">
                                 {messages.map((message, index) => (
                                     <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -668,7 +668,7 @@ const Interview = () => {
 
                             {/* Input Footer Panel */}
                             {!isComplete ? (
-                                <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50">
+                                <div className="border-t border-gray-200 dark:border-gray-900 p-4 bg-transparent">
                                     {handshakeButtons}
                                     {/* Hide text input on handshake selections */}
                                     {phase !== 'limit_reached' && (
@@ -695,7 +695,7 @@ const Interview = () => {
                                                         ? t('Enter a number from 1 to 5', 'Enter a number from 1 to 5')
                                                         : t('Type your answer...', 'Type your answer...')
                                                 }
-                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 outline-none text-gray-900 dark:text-white disabled:opacity-50 shadow-inner"
+                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-950 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 outline-none text-gray-900 dark:text-white disabled:opacity-50 shadow-inner"
                                             />
                                             <div className="tooltip-container">
                                                 <button
@@ -710,11 +710,11 @@ const Interview = () => {
                                         </form>
                                     )}
 
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center font-medium">
+                                    <p className="text-xs text-gray-500 dark:text-gray-300 mt-3 text-center font-medium">
                                         {t('Press Enter to send • You can answer freely — I’ll guide the next step.', 'Press Enter to send • You can answer freely — I’ll guide the next step.')}
                                     </p>
 
-                                    <div className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                    <div className="mt-2 text-center text-xs text-gray-500 dark:text-gray-300 font-semibold">
                                         {['questioning', 'limit_reached'].includes(phase) ? (
                                             <>
                                                 {t('Questions: {{count}}/{{limit}}', 'Questions: {{count}}/{{limit}}', {
@@ -726,7 +726,7 @@ const Interview = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="border-t border-gray-200 dark:border-gray-700 p-6 text-center bg-gray-50/50 dark:bg-gray-800/50">
+                                <div className="border-t border-gray-200 dark:border-gray-900 p-6 text-center bg-transparent">
                                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-200 dark:border-green-800/50 rounded-2xl p-6 shadow-sm">
                                         <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
                                         <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-2 flex items-center justify-center gap-2">
