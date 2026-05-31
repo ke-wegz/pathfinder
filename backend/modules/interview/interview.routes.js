@@ -8,6 +8,7 @@ router.use(protect); // Require auth
 
 router.post('/start', aiLimiter, interviewController.startSession);
 router.post('/message', aiLimiter, interviewController.sendMessage);
+router.get('/sessions', interviewController.getSessions);
 router.get('/session/:id', interviewController.getSession);
 router.post('/complete', interviewController.completeSession);
 

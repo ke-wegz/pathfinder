@@ -344,4 +344,32 @@ exports.completeSession = async (userId, sessionId) => {
   return { sessionId, completed: true };
 };
 
+exports.getUserSessions = async (userId) => {
+  const snapshot = await db.collection('interview_sessions')
+    .where('userId', '==', userId)
+    .get();
+
+  const sessions = [];
+  snapshot.forEach(doc => {
+    sessions.push({
+      sessionId: doc.id,
+      ...doc.data()
+    });
+  });
+
+  // Sort in-memory by createdAt descending to avoid compound index requirements
+  sessions.sort((a, b) => {
+    const aTime = a.createdAt && typeof a.createdAt.toDate === 'function'
+      ? a.createdAt.toDate().getTime()
+      : (a.createdAt instanceof Date ? a.createdAt.getTime() : Number(a.createdAt) || 0);
+    const bTime = b.createdAt && typeof b.createdAt.toDate === 'function'
+      ? b.createdAt.toDate().getTime()
+      : (b.createdAt instanceof Date ? b.createdAt.getTime() : Number(b.createdAt) || 0);
+    return bTime - aTime;
+  });
+
+  return sessions;
+};
+
 exports.parseJsonFromText = parseJsonFromText;
+

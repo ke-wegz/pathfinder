@@ -29,3 +29,9 @@ exports.completeSession = asyncHandler(async (req, res) => {
   const result = await interviewService.completeSession(req.user._id, sessionId);
   res.status(200).json(new ApiResponse(200, result, 'Session completed'));
 });
+
+exports.getSessions = asyncHandler(async (req, res) => {
+  const sessions = await interviewService.getUserSessions(req.user._id);
+  res.status(200).json(new ApiResponse(200, sessions, 'User interview sessions retrieved'));
+});
+
