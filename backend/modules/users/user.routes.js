@@ -8,6 +8,10 @@ const { registerSchema } = require('../../schemas/user.schema');
 // Profile creation route after Firebase Auth
 router.post('/register', protect, validate(registerSchema), userController.registerUser);
 
+// OTP routes (public)
+router.post('/otp/send', userController.sendOTP);
+router.post('/otp/verify', userController.verifyOTP);
+
 // Profile fetch route during login (if needed explicitly)
 router.post('/login', protect, userController.loginUser);
 

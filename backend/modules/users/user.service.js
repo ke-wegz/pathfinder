@@ -28,6 +28,22 @@ const buildDefaultProfile = (uid) => ({
 exports.registerUser = async (userData, uid) => {
   const { email, name } = userData;
 
+  // Security check: Verify that the email was verified via OTP in the last 15 minutes
+  const otpDoc = await db.collection('otps').doc(email).get();
+  if (!otpDoc.exists) {
+    throw new Error('Email verification is required before signing up');
+  }
+  
+  const otpData = otpDoc.data();
+  if (!otpData.verified) {
+    throw new Error('Email verification is required before signing up');
+  }
+
+  const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
+  if (!otpData.verifiedAt || otpData.verifiedAt < fifteenMinutesAgo) {
+    throw new Error('Email verification session has expired. Please verify again.');
+  }
+
   const userRef = db.collection('users').doc(uid);
   const profileRef = db.collection('profiles').doc(uid);
 
