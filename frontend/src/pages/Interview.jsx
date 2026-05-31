@@ -14,7 +14,8 @@ import {
     History,
     Plus,
     Menu,
-    X
+    X,
+    Trash2
 } from 'lucide-react';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
@@ -98,7 +99,7 @@ const Interview = () => {
         }
     };
 
-    // Initialize: load latest past session or start new if none
+    // Initialize: load latest past session or stop in welcome state if none
     const initializeInterview = async () => {
         setIsLoading(true);
         try {
@@ -110,12 +111,16 @@ const Interview = () => {
                 // Auto-load most recent session
                 await loadSession(data[0].sessionId);
             } else {
-                // Auto-start new session
-                await start();
+                // Stop in welcome state (no session loaded, requires user click)
+                setSessionId(null);
+                setMessages([]);
+                setIsComplete(false);
             }
         } catch (e) {
             console.error('Failed to initialize career interview:', e);
-            await start();
+            setSessionId(null);
+            setMessages([]);
+            setIsComplete(false);
         } finally {
             setIsLoading(false);
             setInitialized(true);
@@ -128,49 +133,6 @@ const Interview = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authLoading, profile, initialized]);
-
-    // Start a clean new session
-    const start = async () => {
-        setIsLoading(true);
-        try {
-            const res = await api.post('/interview/start');
-            const data = res?.data?.data || res?.data;
-
-            const nextSessionId = data?.sessionId;
-            const firstQuestion = data?.question;
-
-            if (!nextSessionId || !firstQuestion) {
-                throw new Error('Invalid start response from server');
-            }
-
-            setSessionId(nextSessionId);
-            setPhase(data.phase || 'setup_limit');
-            setQuestionCount(0);
-            setQuestionLimit(10);
-            setIsComplete(false);
-            setTimeline(null);
-            setRecommendationCount(null);
-
-            setMessages([
-                {
-                    role: 'assistant',
-                    content: firstQuestion,
-                },
-            ]);
-
-            await fetchSessions();
-        } catch (e) {
-            console.error(e);
-            setMessages([
-                {
-                    role: 'assistant',
-                    content: t('Sorry — I couldn\'t start your interview. Please refresh and try again.'),
-                },
-            ]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     // Force start a new interview from UI button
     const startNewInterview = async () => {
@@ -251,6 +213,44 @@ const Interview = () => {
             setIsSidebarOpen(false); // close mobile sidebar drawer
         } catch (e) {
             console.error('Failed to load session details:', e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Delete a past interview session
+    const deleteSession = async (e, sId) => {
+        e.stopPropagation(); // Prevent loading session on card click
+        
+        const confirmed = window.confirm(
+            t('Are you sure you want to permanently delete this interview chat history?', 'Are you sure you want to permanently delete this interview chat history?')
+        );
+        if (!confirmed) return;
+
+        setIsLoading(true);
+        try {
+            await api.delete(`/interview/session/${sId}`);
+
+            setSessions((prev) => {
+                const updated = prev.filter((s) => s.sessionId !== sId);
+                
+                // If we deleted the currently loaded session
+                if (sId === sessionId) {
+                    if (updated.length > 0) {
+                        // Load next available session
+                        loadSession(updated[0].sessionId);
+                    } else {
+                        // Back to welcome screen empty state
+                        setSessionId(null);
+                        setMessages([]);
+                        setIsComplete(false);
+                        setPhase('setup_limit');
+                    }
+                }
+                return updated;
+            });
+        } catch (err) {
+            console.error('Failed to delete interview session:', err);
         } finally {
             setIsLoading(false);
         }
@@ -391,13 +391,14 @@ const Interview = () => {
     }, [phase, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const headerSubtitle = useMemo(() => {
+        if (sessionId === null) return 'Start a conversation to find your perfect job roadmap.';
         if (phase === 'setup_limit') return 'How many questions would you like? (5-20)';
         if (phase === 'limit_reached') return 'Question limit reached — choose Continue or Done.';
         if (phase === 'timeline') return 'Tell me your preferred timeline (e.g., 6-12 months).';
         if (phase === 'rec_count') return 'Choose how many recommendations you want (1-5).';
         if (phase === 'complete') return 'Finishing up...';
         return 'Just chat naturally — I’ll guide the next step.';
-    }, [phase]);
+    }, [phase, sessionId]);
 
     if (authLoading || !profile) {
         return (
@@ -494,20 +495,31 @@ const Interview = () => {
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-1.5 text-xs font-semibold leading-none">
                                             <MessageCircle size={14} className={isSelected ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500'} />
-                                            <span className="truncate max-w-[140px]">
+                                            <span className="truncate max-w-[110px]">
                                                 {formatSessionDate(sess)}
                                             </span>
                                         </div>
-                                        {/* Status badge */}
-                                        <span
-                                            className={`text-[9px] font-bold px-2 py-0.5 rounded-full leading-none ${
-                                                isSessComplete
-                                                    ? 'bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400'
-                                                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
-                                            }`}
-                                        >
-                                            {isSessComplete ? t('Complete', 'Complete') : t('Active', 'Active')}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            {/* Delete Icon */}
+                                            <span
+                                                onClick={(e) => deleteSession(e, sess.sessionId)}
+                                                className="p-1 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 duration-150 cursor-pointer"
+                                                title={t('Delete Interview', 'Delete Interview')}
+                                            >
+                                                <Trash2 size={13} />
+                                            </span>
+
+                                            {/* Status badge */}
+                                            <span
+                                                className={`text-[9px] font-bold px-2 py-0.5 rounded-full leading-none ${
+                                                    isSessComplete
+                                                        ? 'bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400'
+                                                        : 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
+                                                }`}
+                                            >
+                                                {isSessComplete ? t('Complete', 'Complete') : t('Active', 'Active')}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {/* Progress counters */}
@@ -559,144 +571,194 @@ const Interview = () => {
                         <div className="w-24 hidden lg:block" /> {/* Spacer spacer */}
                     </div>
 
-                    {/* Chat Board Layout */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div className="h-[500px] overflow-y-auto p-6 space-y-4">
-                            {messages.map((message, index) => (
-                                <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    {message.role === 'assistant' && (
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center flex-shrink-0 mr-3 mt-1 shadow-sm">
+                    {/* Welcoming Screen Slate or Main Chat Board */}
+                    {sessionId === null ? (
+                        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-200/80 dark:border-gray-700/80 p-8 sm:p-10 text-center max-w-2xl mx-auto my-6 transition-all duration-300 hover:shadow-lg">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center text-white mx-auto mb-6 shadow-md animate-bounce" style={{ animationDuration: '3s' }}>
+                                <Sparkles size={30} />
+                            </div>
+
+                            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-3 tracking-tight">
+                                {t('Map Your Career Journey with AI', 'Map Your Career Journey with AI')}
+                            </h2>
+
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto leading-relaxed">
+                                {t('Welcome to PathFinder\'s Career Interview portal! Engaged in a personalized conversation, our AI will evaluate your studies, passions, and objectives to build clear week-by-week roadmaps and pair you with regional jobs.', 'Welcome to PathFinder\'s Career Interview portal! Engaged in a personalized conversation, our AI will evaluate your studies, passions, and objectives to build clear week-by-week roadmaps and pair you with regional jobs.')}
+                            </p>
+
+                            {/* Benefit cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
+                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-150/60 dark:border-gray-800">
+                                    <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center mb-3 shadow-sm">
+                                        <Award size={18} />
+                                    </div>
+                                    <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-1">{t('Dynamic Timelines', 'Dynamic Timelines')}</h4>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-normal">{t('Establish customized check-in periods spanning 3 to 24 months.', 'Establish customized check-in periods spanning 3 to 24 months.')}</p>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-150/60 dark:border-gray-800">
+                                    <div className="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-950/40 text-secondary-600 dark:text-secondary-400 flex items-center justify-center mb-3 shadow-sm">
+                                        <Compass size={18} />
+                                    </div>
+                                    <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-1">{t('Jordanian Openings', 'Jordanian Openings')}</h4>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-normal">{t('Direct connections to actual vacancies in local markets.', 'Direct connections to actual vacancies in local markets.')}</p>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-150/60 dark:border-gray-800">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 shadow-sm">
+                                        <ArrowRight size={18} />
+                                    </div>
+                                    <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-1">{t('Autopilot Control', 'Autopilot Control')}</h4>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-normal">{t('Complete early or append extra prompts to shape results.', 'Complete early or append extra prompts to shape results.')}</p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={startNewInterview}
+                                disabled={isLoading}
+                                className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-bold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
+                            >
+                                <Sparkles size={18} className="animate-pulse" />
+                                <span>{t('Start Your AI Interview', 'Start Your AI Interview')}</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="h-[500px] overflow-y-auto p-6 space-y-4">
+                                {messages.map((message, index) => (
+                                    <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        {message.role === 'assistant' && (
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center flex-shrink-0 mr-3 mt-1 shadow-sm">
+                                                <Sparkles size={14} className="text-white" />
+                                            </div>
+                                        )}
+                                        <div
+                                            className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm ${
+                                                message.role === 'user'
+                                                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-md'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md'
+                                            }`}
+                                        >
+                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                        </div>
+                                        {message.role === 'user' && (
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-3 mt-1">
+                                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                                    {(profile?.name || user?.email || 'U').charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+
+                                {isLoading && (
+                                    <div className="flex justify-start animate-pulse">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center mr-3 mt-1 shadow-sm">
                                             <Sparkles size={14} className="text-white" />
                                         </div>
-                                    )}
-                                    <div
-                                        className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm ${
-                                            message.role === 'user'
-                                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-md'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md'
-                                        }`}
-                                    >
-                                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                                    </div>
-                                    {message.role === 'user' && (
-                                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-3 mt-1">
-                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                                {(profile?.name || user?.email || 'U').charAt(0).toUpperCase()}
-                                            </span>
+                                        <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-bl-md">
+                                            <div className="flex gap-1.5 py-1">
+                                                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" />
+                                                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    </div>
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
 
-                            {isLoading && (
-                                <div className="flex justify-start animate-pulse">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center mr-3 mt-1 shadow-sm">
-                                        <Sparkles size={14} className="text-white" />
+                            {/* Input Footer Panel */}
+                            {!isComplete ? (
+                                <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50">
+                                    {handshakeButtons}
+                                    {/* Hide text input on handshake selections */}
+                                    {phase !== 'limit_reached' && (
+                                        <form
+                                            onSubmit={(e) => {
+                                                e.preventDefault();
+                                                sendText();
+                                            }}
+                                            className="flex gap-3 mt-2"
+                                        >
+                                            <input
+                                                ref={inputRef}
+                                                type="text"
+                                                value={input}
+                                                onChange={(e) => setInput(e.target.value)}
+                                                onKeyPress={handleKeyPress}
+                                                disabled={isLoading}
+                                                placeholder={
+                                                    phase === 'setup_limit'
+                                                        ? t('Enter a number from 5 to 20', 'Enter a number from 5 to 20')
+                                                        : phase === 'timeline'
+                                                        ? t('e.g., 6 months', 'e.g., 6 months')
+                                                        : phase === 'rec_count'
+                                                        ? t('Enter a number from 1 to 5', 'Enter a number from 1 to 5')
+                                                        : t('Type your answer...', 'Type your answer...')
+                                                }
+                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 outline-none text-gray-900 dark:text-white disabled:opacity-50 shadow-inner"
+                                            />
+                                            <div className="tooltip-container">
+                                                <button
+                                                    type="submit"
+                                                    disabled={isLoading || !input.trim()}
+                                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-semibold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center shadow-md"
+                                                >
+                                                    {isLoading ? <Loader size={20} className="animate-spin" /> : <Send size={20} />}
+                                                </button>
+                                                <span className="tooltip-text">{t('Send Message', 'Send Message')}</span>
+                                            </div>
+                                        </form>
+                                    )}
+
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center font-medium">
+                                        {t('Press Enter to send • You can answer freely — I’ll guide the next step.', 'Press Enter to send • You can answer freely — I’ll guide the next step.')}
+                                    </p>
+
+                                    <div className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                        {['questioning', 'limit_reached'].includes(phase) ? (
+                                            <>
+                                                {t('Questions: {{count}}/{{limit}}', 'Questions: {{count}}/{{limit}}', {
+                                                    count: questionCount,
+                                                    limit: questionLimit,
+                                                })}
+                                            </>
+                                        ) : null}
                                     </div>
-                                    <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-bl-md">
-                                        <div className="flex gap-1.5 py-1">
-                                            <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" />
-                                            <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                            <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                </div>
+                            ) : (
+                                <div className="border-t border-gray-200 dark:border-gray-700 p-6 text-center bg-gray-50/50 dark:bg-gray-800/50">
+                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-200 dark:border-green-800/50 rounded-2xl p-6 shadow-sm">
+                                        <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
+                                        <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-2 flex items-center justify-center gap-2">
+                                            {t('Interview Complete!')} <Award size={28} className="text-green-500 animate-pulse" />
+                                        </h2>
+                                        <p className="text-green-700 dark:text-green-300 mb-4">{t('Your personalized career recommendations are ready!', 'Your personalized career recommendations are ready!')}</p>
+                                        <div className="flex gap-4 justify-center">
+                                            <div className="tooltip-container">
+                                                <a
+                                                    href="/paths"
+                                                    className="w-12 h-12 inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-md transition-all hover:scale-105 active:scale-95"
+                                                >
+                                                    <Sparkles size={22} />
+                                                </a>
+                                                <span className="tooltip-text">{t('View Your Recommendations', 'View Your Recommendations')}</span>
+                                            </div>
+                                            <div className="tooltip-container">
+                                                <a
+                                                    href="/resources"
+                                                    className="w-12 h-12 inline-flex items-center justify-center border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-850 rounded-xl transition-all text-gray-700 dark:text-gray-300 shadow-sm"
+                                                >
+                                                    <BookOpen size={22} />
+                                                </a>
+                                                <span className="tooltip-text">{t('Browse Learning Resources', 'Browse Learning Resources')}</span>
+                                            </div>
                                         </div>
+                                        <p className="text-xs text-green-600 dark:text-green-400 mt-4 font-semibold">{t('Saved in the Career Paths tab', 'Saved in the Career Paths tab')}</p>
                                     </div>
                                 </div>
                             )}
-                            <div ref={messagesEndRef} />
                         </div>
-
-                        {/* Input Footer Panel */}
-                        {!isComplete ? (
-                            <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50">
-                                {handshakeButtons}
-                                {/* Hide text input on handshake selections */}
-                                {phase !== 'limit_reached' && (
-                                    <form
-                                        onSubmit={(e) => {
-                                            e.preventDefault();
-                                            sendText();
-                                        }}
-                                        className="flex gap-3 mt-2"
-                                    >
-                                        <input
-                                            ref={inputRef}
-                                            type="text"
-                                            value={input}
-                                            onChange={(e) => setInput(e.target.value)}
-                                            onKeyPress={handleKeyPress}
-                                            disabled={isLoading}
-                                            placeholder={
-                                                phase === 'setup_limit'
-                                                    ? t('Enter a number from 5 to 20', 'Enter a number from 5 to 20')
-                                                    : phase === 'timeline'
-                                                    ? t('e.g., 6 months', 'e.g., 6 months')
-                                                    : phase === 'rec_count'
-                                                    ? t('Enter a number from 1 to 5', 'Enter a number from 1 to 5')
-                                                    : t('Type your answer...', 'Type your answer...')
-                                            }
-                                            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 outline-none text-gray-900 dark:text-white disabled:opacity-50 shadow-inner"
-                                        />
-                                        <div className="tooltip-container">
-                                            <button
-                                                type="submit"
-                                                disabled={isLoading || !input.trim()}
-                                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-semibold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center shadow-md"
-                                            >
-                                                {isLoading ? <Loader size={20} className="animate-spin" /> : <Send size={20} />}
-                                            </button>
-                                            <span className="tooltip-text">{t('Send Message', 'Send Message')}</span>
-                                        </div>
-                                    </form>
-                                )}
-
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center font-medium">
-                                    {t('Press Enter to send • You can answer freely — I’ll guide the next step.', 'Press Enter to send • You can answer freely — I’ll guide the next step.')}
-                                </p>
-
-                                <div className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                                    {['questioning', 'limit_reached'].includes(phase) ? (
-                                        <>
-                                            {t('Questions: {{count}}/{{limit}}', 'Questions: {{count}}/{{limit}}', {
-                                                count: questionCount,
-                                                limit: questionLimit,
-                                            })}
-                                        </>
-                                    ) : null}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="border-t border-gray-200 dark:border-gray-700 p-6 text-center bg-gray-50/50 dark:bg-gray-800/50">
-                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-200 dark:border-green-800/50 rounded-2xl p-6 shadow-sm">
-                                    <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                                    <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-2 flex items-center justify-center gap-2">
-                                        {t('Interview Complete!')} <Award size={28} className="text-green-500 animate-pulse" />
-                                    </h2>
-                                    <p className="text-green-700 dark:text-green-300 mb-4">{t('Your personalized career recommendations are ready!', 'Your personalized career recommendations are ready!')}</p>
-                                    <div className="flex gap-4 justify-center">
-                                        <div className="tooltip-container">
-                                            <a
-                                                href="/paths"
-                                                className="w-12 h-12 inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-md transition-all hover:scale-105 active:scale-95"
-                                            >
-                                                <Sparkles size={22} />
-                                            </a>
-                                            <span className="tooltip-text">{t('View Your Recommendations', 'View Your Recommendations')}</span>
-                                        </div>
-                                        <div className="tooltip-container">
-                                            <a
-                                                href="/resources"
-                                                className="w-12 h-12 inline-flex items-center justify-center border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-850 rounded-xl transition-all text-gray-700 dark:text-gray-300 shadow-sm"
-                                            >
-                                                <BookOpen size={22} />
-                                            </a>
-                                            <span className="tooltip-text">{t('Browse Learning Resources', 'Browse Learning Resources')}</span>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-green-600 dark:text-green-400 mt-4 font-semibold">{t('Saved in the Career Paths tab', 'Saved in the Career Paths tab')}</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     <div className="mt-6 bg-primary-50 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-800/50 rounded-2xl p-4 shadow-sm">
                         <div className="flex gap-3">

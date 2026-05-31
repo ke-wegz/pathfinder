@@ -371,5 +371,22 @@ exports.getUserSessions = async (userId) => {
   return sessions;
 };
 
+exports.deleteSession = async (sessionId, userId) => {
+  const sessionRef = db.collection('interview_sessions').doc(sessionId);
+  const sessionDoc = await sessionRef.get();
+
+  if (!sessionDoc.exists) {
+    throw new Error('Session not found');
+  }
+
+  const session = sessionDoc.data();
+  if (session.userId !== userId) {
+    throw new Error('Unauthorized');
+  }
+
+  await sessionRef.delete();
+  return { sessionId, deleted: true };
+};
+
 exports.parseJsonFromText = parseJsonFromText;
 

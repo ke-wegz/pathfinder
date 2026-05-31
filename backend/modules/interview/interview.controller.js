@@ -35,3 +35,8 @@ exports.getSessions = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, sessions, 'User interview sessions retrieved'));
 });
 
+exports.deleteSession = asyncHandler(async (req, res) => {
+  const result = await interviewService.deleteSession(req.params.id, req.user._id);
+  res.status(200).json(new ApiResponse(200, result, 'Session deleted successfully'));
+});
+
