@@ -548,7 +548,7 @@ const Interview = () => {
                         {/* Mobile Drawer Trigger */}
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="lg:hidden inline-flex items-center justify-center p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 transition shadow-sm"
+                            className="lg:hidden inline-flex items-center justify-center p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm"
                         >
                             <Menu size={20} />
                             <span className="text-xs font-semibold ml-2">{t('History', 'History')}</span>
@@ -588,21 +588,21 @@ const Interview = () => {
 
                             {/* Benefit cards */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
-                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-150/60 dark:border-gray-800">
+                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-200/60 dark:border-gray-700/60">
                                     <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center mb-3 shadow-sm">
                                         <Award size={18} />
                                     </div>
                                     <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-1">{t('Dynamic Timelines', 'Dynamic Timelines')}</h4>
                                     <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-normal">{t('Establish customized check-in periods spanning 3 to 24 months.', 'Establish customized check-in periods spanning 3 to 24 months.')}</p>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-150/60 dark:border-gray-800">
+                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-200/60 dark:border-gray-700/60">
                                     <div className="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-950/40 text-secondary-600 dark:text-secondary-400 flex items-center justify-center mb-3 shadow-sm">
                                         <Compass size={18} />
                                     </div>
                                     <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-1">{t('Jordanian Openings', 'Jordanian Openings')}</h4>
                                     <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-normal">{t('Direct connections to actual vacancies in local markets.', 'Direct connections to actual vacancies in local markets.')}</p>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-150/60 dark:border-gray-800">
+                                <div className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-200/60 dark:border-gray-700/60">
                                     <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 shadow-sm">
                                         <ArrowRight size={18} />
                                     </div>
@@ -746,7 +746,7 @@ const Interview = () => {
                                             <div className="tooltip-container">
                                                 <a
                                                     href="/resources"
-                                                    className="w-12 h-12 inline-flex items-center justify-center border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-850 rounded-xl transition-all text-gray-700 dark:text-gray-300 shadow-sm"
+                                                    className="w-12 h-12 inline-flex items-center justify-center border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all text-gray-700 dark:text-gray-300 shadow-sm"
                                                 >
                                                     <BookOpen size={22} />
                                                 </a>
