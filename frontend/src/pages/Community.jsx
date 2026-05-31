@@ -247,7 +247,7 @@ const Community = () => {
     }, [posts]);
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 w-full overflow-x-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -274,9 +274,9 @@ const Community = () => {
                     </div>
                 </div>
 
-                <div className="grid lg:grid-cols-3 gap-6">
+                <div className="grid lg:grid-cols-3 gap-6 w-full min-w-0 overflow-hidden">
                     {/* Main Feed */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-2 space-y-6 min-w-0">
                         {/* Search Bar */}
                         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                             <div className="relative">
@@ -292,7 +292,7 @@ const Community = () => {
                         </div>
 
                         {/* Topic Filters */}
-                        <div className="flex gap-2 overflow-x-auto pb-2">
+                        <div className="flex gap-2 overflow-x-auto pb-2 max-w-full">
                             <button
                                 onClick={() => setFilterTopic('All')}
                                 className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${filterTopic === 'All'
@@ -357,7 +357,7 @@ const Community = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{post.text}</p>
+                                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{post.text}</p>
 
                                                 {/* Post Actions */}
                                                 <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
@@ -410,7 +410,7 @@ const Community = () => {
                                                                     <span className="font-semibold text-sm text-gray-900 dark:text-white">{comment.author}</span>
                                                                     <span className="text-xs text-gray-500">{formatTime(comment.createdAt)}</span>
                                                                 </div>
-                                                                <p className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</p>
+                                                                <p className="text-sm text-gray-700 dark:text-gray-300 break-words">{comment.text}</p>
                                                             </div>
                                                         </div>
                                                     ))
@@ -426,7 +426,7 @@ const Community = () => {
                                                     onChange={(e) => setCommentText(e.target.value)}
                                                     onKeyPress={(e) => e.key === 'Enter' && handleComment(post.id)}
                                                     placeholder={t('Write a comment...')}
-                                                    className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+                                                    className="flex-1 min-w-0 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
                                                 />
                                                 <button
                                                     onClick={() => handleComment(post.id)}
