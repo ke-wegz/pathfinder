@@ -120,3 +120,12 @@ exports.verifyOTP = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, null, 'Email verified successfully'));
 });
 
+// @desc    Reset all user data
+// @route   DELETE /api/users/reset-data
+// @access  Private (Needs Firebase Token)
+exports.resetData = asyncHandler(async (req, res) => {
+  await userService.resetUserData(req.user._id);
+  res.status(200).json(new ApiResponse(200, null, 'All user data has been successfully reset'));
+});
+
+

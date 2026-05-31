@@ -230,3 +230,37 @@ exports.deleteUserAccount = async (uid) => {
   }
   return true;
 };
+
+exports.resetUserData = async (uid) => {
+  const batch = db.batch();
+
+  // 1. Delete goals
+  const goalsSnapshot = await db.collection('goals').where('userId', '==', uid).get();
+  goalsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+  // 2. Delete recommendations
+  const recsSnapshot1 = await db.collection('recommendations').where('userId', '==', uid).get();
+  const recsSnapshot2 = await db.collection('recommendations').where('userID', '==', uid).get();
+  recsSnapshot1.docs.forEach(doc => batch.delete(doc.ref));
+  recsSnapshot2.docs.forEach(doc => batch.delete(doc.ref));
+
+  // 3. Delete notifications
+  const notifsSnapshot = await db.collection('notifications').where('userId', '==', uid).get();
+  notifsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+  // 4. Delete interview sessions
+  const sessionsSnapshot = await db.collection('interview_sessions').where('userId', '==', uid).get();
+  sessionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+  // 5. Delete CVs
+  const cvsSnapshot = await db.collection('cvs').where('userId', '==', uid).get();
+  cvsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+  // 6. Reset Profile to default build values
+  const profileRef = db.collection('profiles').doc(uid);
+  batch.set(profileRef, buildDefaultProfile(uid));
+
+  await batch.commit();
+  return true;
+};
+
