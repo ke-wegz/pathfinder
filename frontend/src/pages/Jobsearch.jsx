@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
 import {
     Search, Briefcase, MapPin, DollarSign, Building,
     ExternalLink, ChevronRight, Filter, Star, Clock,
     TrendingUp, Bookmark, Share2, Calendar, Award,
     Linkedin, Globe, Mail, Phone, Palette, BarChart2,
-    Laptop, Megaphone, Package, Clipboard, X
+    Laptop, Megaphone, Package, Clipboard, X, RefreshCw
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const JobSearch = () => {
     const { t } = useTranslation();
+    
     const renderJobLogo = (logoKey) => {
         const logoMap = {
             '🏢': <Building size={24} className="text-blue-600 dark:text-blue-400" />,
@@ -25,167 +27,75 @@ const JobSearch = () => {
         };
         return logoMap[logoKey] || <Briefcase size={24} className="text-primary-600 dark:text-primary-400" />;
     };
-    const { profile, recommendations } = useAuth();
+
+    const { profile } = useAuth();
+    const [jobs, setJobs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [location, setLocation] = useState(profile?.location || '');
+    const [location, setLocation] = useState(profile?.location || 'Amman, Jordan');
     const [jobType, setJobType] = useState('all');
     const [experienceLevel, setExperienceLevel] = useState('all');
     const [salaryRange, setSalaryRange] = useState('all');
     const [savedJobs, setSavedJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState('');
 
-    const recs = recommendations ? (() => {
-        try { return JSON.parse(recommendations); }
-        catch { return []; }
-    })() : [];
-
-    // Sample job listings (in production, these would come from an API)
-    const [jobs, setJobs] = useState([
-        {
-            id: 1,
-            title: 'Senior Product Manager',
-            company: 'TechCorp Solutions',
-            location: 'San Francisco, CA',
-            type: 'Full-time',
-            experience: 'Senior',
-            salary: '$140k - $180k',
-            posted: '2 days ago',
-            description: 'Lead product development for AI-powered solutions...',
-            requirements: ['5+ years product management', 'Experience with AI/ML products', 'Strong leadership skills'],
-            benefits: ['Remote work', 'Health insurance', 'Stock options'],
-            logo: '🏢',
-            matchScore: 94
-        },
-        {
-            id: 2,
-            title: 'UX/UI Designer',
-            company: 'CreativeStudio',
-            location: 'New York, NY',
-            type: 'Full-time',
-            experience: 'Mid-Level',
-            salary: '$85k - $120k',
-            posted: '1 week ago',
-            description: 'Design beautiful and intuitive user experiences...',
-            requirements: ['3+ years UX design', 'Figma expertise', 'User research experience'],
-            benefits: ['Flexible hours', 'Design conferences', '401k match'],
-            logo: '🎨',
-            matchScore: 89
-        },
-        {
-            id: 3,
-            title: 'Data Scientist',
-            company: 'DataFlow Analytics',
-            location: 'Remote',
-            type: 'Remote',
-            experience: 'Mid-Level',
-            salary: '$110k - $150k',
-            posted: '3 days ago',
-            description: 'Build machine learning models and data pipelines...',
-            requirements: ['Python', 'SQL', 'Machine Learning', 'Statistics'],
-            benefits: ['Fully remote', 'Learning budget', 'Flexible schedule'],
-            logo: '📊',
-            matchScore: 87
-        },
-        {
-            id: 4,
-            title: 'Software Engineer',
-            company: 'InnovateTech',
-            location: 'Austin, TX',
-            type: 'Full-time',
-            experience: 'Entry Level',
-            salary: '$75k - $95k',
-            posted: '5 days ago',
-            description: 'Develop and maintain web applications...',
-            requirements: ['React', 'Node.js', 'TypeScript', 'REST APIs'],
-            benefits: ['Mentorship program', 'Gym membership', 'Stock options'],
-            logo: '💻',
-            matchScore: 85
-        },
-        {
-            id: 5,
-            title: 'Marketing Manager',
-            company: 'BrandBoost',
-            location: 'Chicago, IL',
-            type: 'Full-time',
-            experience: 'Senior',
-            salary: '$90k - $130k',
-            posted: '1 day ago',
-            description: 'Lead marketing strategy and campaigns...',
-            requirements: ['5+ years marketing', 'Digital marketing expertise', 'Team leadership'],
-            benefits: ['Performance bonus', 'Remote options', 'Career growth'],
-            logo: '📢',
-            matchScore: 82
+    const fetchJobs = async (forceRefresh = false) => {
+        if (forceRefresh) {
+            setRefreshing(true);
+        } else {
+            setLoading(true);
         }
-    ]);
+        setError('');
 
-    // Add AI-generated jobs from recommendations
+        try {
+            const res = await api.get(`/jobs${forceRefresh ? '?refresh=true' : ''}`);
+            if (res.data && res.data.data) {
+                const fetchedJobs = res.data.data;
+                setJobs(fetchedJobs);
+                // Auto-select the first job for a premium look
+                if (fetchedJobs.length > 0) {
+                    setSelectedJob(fetchedJobs[0]);
+                } else {
+                    setSelectedJob(null);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to fetch jobs:", err);
+            setError(t('Failed to load localized jobs. Please try refreshing.'));
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
     useEffect(() => {
-        if (recs.length > 0) {
-            const aiJobs = recs.map((rec, index) => ({
-                id: `ai-${index}`,
-                title: rec.title,
-                company: rec.localCompanies?.[0]?.name || `${rec.title} Specialist`,
-                location: rec.localCompanies?.[0]?.location || profile?.location || 'Various Locations',
-                type: 'Full-time',
-                experience: 'Mid-Level',
-                salary: getSalaryForTitle(rec.title),
-                posted: 'Recently',
-                description: rec.reason || `Opportunity in ${rec.title} field`,
-                requirements: rec.skills || [],
-                benefits: ['Career growth', 'Competitive salary', 'Professional development'],
-                logo: getLogoForTitle(rec.title),
-                matchScore: 85 + Math.floor(Math.random() * 15),
-                isAIGenerated: true
-            }));
-            setJobs([...aiJobs, ...jobs]);
-        }
-    }, [recs]);
-
-    const getSalaryForTitle = (title) => {
-        const salaries = {
-            'Product Manager': '$95k - $145k',
-            'UX Designer': '$75k - $120k',
-            'Data Analyst': '$65k - $105k',
-            'Software Engineer': '$85k - $150k',
-            'Marketing Manager': '$70k - $110k',
-            'Project Manager': '$80k - $130k'
-        };
-        return salaries[title] || '$70k - $100k';
-    };
-
-    const getLogoForTitle = (title) => {
-        const logos = {
-            'Product Manager': '📦',
-            'UX Designer': '🎨',
-            'Data Analyst': '📈',
-            'Software Engineer': '💻',
-            'Marketing Manager': '📢',
-            'Project Manager': '📋'
-        };
-        return logos[title] || '💼';
-    };
+        fetchJobs();
+    }, []);
 
     const jobTypes = ['all', 'Full-time', 'Part-time', 'Contract', 'Remote', 'Internship'];
     const experienceLevels = ['all', 'Entry Level', 'Mid-Level', 'Senior', 'Lead'];
-    const salaryRanges = ['all', 'Under $50k', '$50k - $80k', '$80k - $120k', '$120k - $150k', '$150k+'];
+    const salaryRanges = ['all', 'Under 500 JOD', '500 JOD - 1000 JOD', '1000 JOD - 1500 JOD', '1500 JOD - 2000 JOD', '2000 JOD+'];
 
     const filteredJobs = jobs.filter(job => {
         const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.company.toLowerCase().includes(searchTerm.toLowerCase());
+            job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (job.requirements && job.requirements.some(req => req.toLowerCase().includes(searchTerm.toLowerCase())));
+        
         const matchesLocation = !location || job.location.toLowerCase().includes(location.toLowerCase());
         const matchesType = jobType === 'all' || job.type === jobType;
         const matchesExperience = experienceLevel === 'all' || job.experience === experienceLevel;
 
-        // Salary filter logic
+        // Localized Salary filter logic
         let matchesSalary = true;
         if (salaryRange !== 'all') {
-            const salaryNum = parseInt(job.salary.split('-')[0].replace(/[^0-9]/g, ''));
-            if (salaryRange === 'Under $50k') matchesSalary = salaryNum < 50;
-            else if (salaryRange === '$50k - $80k') matchesSalary = salaryNum >= 50 && salaryNum <= 80;
-            else if (salaryRange === '$80k - $120k') matchesSalary = salaryNum >= 80 && salaryNum <= 120;
-            else if (salaryRange === '$120k - $150k') matchesSalary = salaryNum >= 120 && salaryNum <= 150;
-            else if (salaryRange === '$150k+') matchesSalary = salaryNum >= 150;
+            const salaryNum = parseInt(job.salary.split('-')[0].replace(/[^0-9]/g, ''), 10);
+            if (salaryRange === 'Under 500 JOD') matchesSalary = salaryNum < 500;
+            else if (salaryRange === '500 JOD - 1000 JOD') matchesSalary = salaryNum >= 500 && salaryNum <= 1000;
+            else if (salaryRange === '1000 JOD - 1500 JOD') matchesSalary = salaryNum >= 1000 && salaryNum <= 1500;
+            else if (salaryRange === '1500 JOD - 2000 JOD') matchesSalary = salaryNum >= 1500 && salaryNum <= 2000;
+            else if (salaryRange === '2000 JOD+') matchesSalary = salaryNum >= 2000;
         }
 
         return matchesSearch && matchesLocation && matchesType && matchesExperience && matchesSalary;
@@ -228,17 +138,17 @@ const JobSearch = () => {
                         <span>{t('Job Search')}</span>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('Job Search')}</h1>
-                    <p className="text-gray-600 dark:text-gray-400">{t('Find your next career opportunity')}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('Find localized career opportunities in Jordan matching your AI goals')}</p>
                 </div>
 
                 {/* Search Bar */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <form onSubmit={(e) => e.preventDefault()} className="grid md:grid-cols-3 gap-4">
                         <div className="relative">
                             <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder={t('Job title or keyword')}
+                                placeholder={t('Job title, skills, or company')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary-500"
@@ -254,13 +164,32 @@ const JobSearch = () => {
                                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary-500"
                             />
                         </div>
-                        <div className="tooltip-container">
-                            <button className="p-3.5 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white hover:scale-105 transition-transform flex items-center justify-center" aria-label="Search jobs">
-                                <Search size={20} />
-                            </button>
-                            <span className="tooltip-text">{t('Search Jobs')}</span>
+                        <div className="flex gap-2">
+                            <div className="tooltip-container flex-1">
+                                <button 
+                                    type="submit" 
+                                    className="w-full p-3.5 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white hover:scale-[1.01] transition-all flex items-center justify-center gap-2 font-semibold shadow-sm"
+                                    aria-label="Search jobs"
+                                >
+                                    <Search size={18} />
+                                    {t('Search')}
+                                </button>
+                                <span className="tooltip-text">{t('Search Jobs')}</span>
+                            </div>
+                            <div className="tooltip-container">
+                                <button
+                                    type="button"
+                                    onClick={() => fetchJobs(true)}
+                                    disabled={loading || refreshing}
+                                    className="p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
+                                    aria-label="Refresh job listings"
+                                >
+                                    <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+                                </button>
+                                <span className="tooltip-text">{t('Refresh Listings')}</span>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
 
                 {/* Filters */}
@@ -272,7 +201,7 @@ const JobSearch = () => {
                             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm"
                         >
                             {jobTypes.map(type => (
-                                <option key={type} value={type}>{type === 'all' ? 'All Types' : type}</option>
+                                <option key={type} value={type}>{type === 'all' ? t('All Types') : t(type)}</option>
                             ))}
                         </select>
                         <select
@@ -281,7 +210,7 @@ const JobSearch = () => {
                             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm"
                         >
                             {experienceLevels.map(level => (
-                                <option key={level} value={level}>{level === 'all' ? 'All Levels' : level}</option>
+                                <option key={level} value={level}>{level === 'all' ? t('All Levels') : t(level)}</option>
                             ))}
                         </select>
                         <select
@@ -290,21 +219,47 @@ const JobSearch = () => {
                             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm"
                         >
                             {salaryRanges.map(range => (
-                                <option key={range} value={range}>{range === 'all' ? 'All Salaries' : range}</option>
+                                <option key={range} value={range}>{range === 'all' ? t('All Salaries') : t(range)}</option>
                             ))}
                         </select>
                     </div>
                 </div>
 
-                {/* Job Listings */}
+                {/* Error Banner */}
+                {error && (
+                    <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+                        {error}
+                    </div>
+                )}
+
+                {/* Job Listings Grid */}
                 <div className="grid lg:grid-cols-3 gap-6">
                     {/* Job List */}
                     <div className="lg:col-span-2 space-y-4">
-                        {filteredJobs.length === 0 ? (
+                        {loading ? (
+                            <div className="space-y-4">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 animate-pulse space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+                                            </div>
+                                        </div>
+                                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                                        <div className="flex gap-4">
+                                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+                                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : filteredJobs.length === 0 ? (
                             <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                                 <Search size={48} className="mx-auto text-gray-400 mb-4" />
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('No jobs found')}</h3>
-                                <p className="text-gray-600 dark:text-gray-400">{t('Try adjusting your search criteria')}</p>
+                                <p className="text-gray-600 dark:text-gray-400">{t('Try adjusting your search or refresh listings')}</p>
                             </div>
                         ) : (
                             filteredJobs.map(job => (
@@ -325,7 +280,7 @@ const JobSearch = () => {
                                                     <p className="text-sm text-gray-600 dark:text-gray-400">{job.company}</p>
                                                 </div>
                                                 {job.matchScore && (
-                                                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-semibold rounded-full">
+                                                    <span className="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-semibold rounded-full">
                                                         {job.matchScore}% Match
                                                     </span>
                                                 )}
@@ -338,7 +293,7 @@ const JobSearch = () => {
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Briefcase size={14} />
-                                                    {job.type}
+                                                    {t(job.type)}
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <DollarSign size={14} />
@@ -346,7 +301,7 @@ const JobSearch = () => {
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Clock size={14} />
-                                                    {job.posted}
+                                                    {t(job.posted)}
                                                 </span>
                                             </div>
 
@@ -376,7 +331,7 @@ const JobSearch = () => {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         onClick={(e) => e.stopPropagation()}
-                                                        className="p-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center justify-center animate-fade-in"
+                                                        className="p-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center justify-center"
                                                     >
                                                         <ExternalLink size={16} />
                                                     </a>
@@ -422,7 +377,7 @@ const JobSearch = () => {
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
                                         <Briefcase size={16} className="text-gray-400" />
-                                        <span>{selectedJob.type} · {selectedJob.experience}</span>
+                                        <span>{t(selectedJob.type)} · {t(selectedJob.experience)}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
                                         <DollarSign size={16} className="text-gray-400" />
@@ -430,7 +385,7 @@ const JobSearch = () => {
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
                                         <Clock size={16} className="text-gray-400" />
-                                        <span>{t('Posted')} {selectedJob.posted}</span>
+                                        <span>{t('Posted')} {t(selectedJob.posted)}</span>
                                     </div>
                                 </div>
 
@@ -456,7 +411,7 @@ const JobSearch = () => {
                                     <div className="flex flex-wrap gap-2">
                                         {selectedJob.benefits?.map((benefit, i) => (
                                             <span key={i} className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs rounded-full">
-                                                {benefit}
+                                                {t(benefit)}
                                             </span>
                                         ))}
                                     </div>
@@ -468,7 +423,7 @@ const JobSearch = () => {
                                             href={getJobSearchUrl(selectedJob.title, selectedJob.location)}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="w-full flex items-center justify-center p-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold hover:scale-105 transition-transform"
+                                            className="w-full flex items-center justify-center p-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold hover:scale-[1.02] transition-transform"
                                         >
                                             <ExternalLink size={20} />
                                         </a>

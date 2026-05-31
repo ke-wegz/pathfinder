@@ -23,6 +23,7 @@ app.use('/api/notifications', require('./modules/notifications/notification.rout
 app.use('/api/feedback', require('./modules/feedback/feedback.routes'));
 app.use('/api/privacy', require('./modules/privacy/privacy.routes'));
 app.use('/api/cv', require('./modules/cv/cv.routes'));
+app.use('/api/jobs', require('./modules/jobs/jobs.routes'));
 
 // Basic health check route
 app.get('/health', (req, res) => {
