@@ -13,7 +13,7 @@ import Profile from './pages/Profile';
 import CVBuilder from './pages/CVBuilder';
 import Goals from './pages/Goals';
 import Progress from './pages/Progress';
-import JobSearch from './pages/JobSearch';
+import JobSearch from './pages/Jobsearch';
 import Interview from './pages/Interview';
 import CareerPaths from './pages/CareerPaths';
 import ResourceHub from './pages/ResourceHub';
