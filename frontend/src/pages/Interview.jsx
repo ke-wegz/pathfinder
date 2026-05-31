@@ -760,7 +760,7 @@ const Interview = () => {
                         </div>
                     )}
 
-                    <div className="mt-6 bg-primary-50 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-800/50 rounded-2xl p-4 shadow-sm">
+                    <div className="mt-6 bg-primary-50/40 dark:bg-gray-950/40 border border-primary-100 dark:border-primary-500/30 rounded-2xl p-4 shadow-sm backdrop-blur-md">
                         <div className="flex gap-3">
                             <Info size={20} className="text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
                             <div>
