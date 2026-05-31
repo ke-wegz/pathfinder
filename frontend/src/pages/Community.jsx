@@ -496,14 +496,14 @@ const Community = () => {
                             <div className="space-y-3">
                                 {topContributors.map((contributor, i) => (
                                     <div key={i} className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center text-white text-sm font-bold">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                                             {contributor.avatar}
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{contributor.name}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{contributor.name}</p>
                                             <p className="text-xs text-gray-500">{t('{{count}} contributions', { count: contributor.contributions })}</p>
                                         </div>
-                                        <Star size={14} className="text-yellow-500" />
+                                        <Star size={14} className="text-yellow-500 flex-shrink-0" />
                                     </div>
                                 ))}
                             </div>
