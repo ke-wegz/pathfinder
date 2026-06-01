@@ -274,7 +274,10 @@ const Index = () => {
 
                         {/* Mobile Menu Button */}
                         <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setMobileMenuOpen(!mobileMenuOpen);
+                            }}
                             className="menu-btn md:hidden w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center"
                         >
                             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
