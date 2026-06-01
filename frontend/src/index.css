@@ -159,15 +159,32 @@ input:focus, textarea:focus, select:focus {
   transform: translateX(0);
 }
 
-/* Global base text for dark mode (prevents “black until highlighted”) */
+/* Animated background gradient keyframes */
+@keyframes premium-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Global base text and background with slow moving signature gradients */
 body {
   color: rgb(17 24 39); /* slate-900 */
-  background: rgb(249 250 251); /* gray-50 */
+  background: linear-gradient(-45deg, #f8fafc, #eff6ff, #fdf4ff, #e2e8f0);
+  background-size: 400% 400%;
+  animation: premium-gradient 18s ease infinite;
 }
 
 .dark body {
   color: rgb(243 244 246); /* gray-100 */
-  background: rgb(17 24 39); /* gray-900 */
+  background: linear-gradient(-45deg, #0b0f19, #1a153b, #2b0b52, #030712);
+  background-size: 400% 400%;
+  animation: premium-gradient 25s ease infinite;
 }
 
 /* Premium CSS Tooltip System */
