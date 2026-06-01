@@ -286,7 +286,7 @@ const Index = () => {
                 </div>
 
                 {/* Mobile Menu */}
-                <div className={`mobile-menu fixed top-0 right-0 bottom-0 w-80 bg-white dark:bg-gray-900 z-50 shadow-xl transform transition-transform duration-300 ease-out overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className={`mobile-menu fixed top-0 right-0 bottom-0 w-80 bg-white dark:bg-gray-900 z-50 shadow-xl overflow-y-auto ${mobileMenuOpen ? 'open' : ''}`}>
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-8">
                             <Link to="/" className="flex items-center gap-2 text-xl font-bold" onClick={() => setMobileMenuOpen(false)}>
