@@ -14,13 +14,19 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
     throw new Error('Email verification is currently unavailable. Please check your backend environment configuration.');
   }
 
-  // Create transporter using Gmail SMTP
+  console.log(`[SMTP Debug] Creating Nodemailer Gmail transport for ${emailUser}...`);
+  // Create transporter using secure Gmail SMTP on port 465 with 5-second timeouts
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL/TLS
     auth: {
       user: emailUser,
       pass: emailPass,
     },
+    connectionTimeout: 5000, // 5 seconds
+    greetingTimeout: 5000,    // 5 seconds
+    socketTimeout: 5000,      // 5 seconds
   });
 
   // Create a stunning HTML email template matching PathFinder AI styling.
@@ -151,7 +157,7 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
               <span class="logo-symbol">🧭</span> PathFinder AI
             </h2>
           </div>
-
+ 
           <!-- Content Body -->
           <div class="content">
             <h1>Verify Your Email Address</h1>
@@ -172,10 +178,10 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
               If you didn't request this email, you can safely ignore it. Your account will not be created without verification.
             </p>
           </div>
-
+ 
           <!-- Divider -->
           <hr class="divider" />
-
+ 
           <!-- Footer Area -->
           <div class="footer">
             <p class="footer-text">
@@ -188,20 +194,21 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
     </body>
     </html>
   `;
-
+ 
   const mailOptions = {
     from: `"PathFinder AI" <${emailUser}>`,
     to: toEmail,
     subject: `${otpCode} is your PathFinder AI verification code`,
     html: htmlContent,
   };
-
+ 
   try {
+    console.log(`[SMTP Debug] Attempting to dispatch OTP email to ${toEmail}...`);
     const info = await transporter.sendMail(mailOptions);
     console.log(`Successfully sent verification OTP email to ${toEmail} via Gmail (Message ID: ${info.messageId})`);
     return true;
   } catch (error) {
-    console.error('Error sending email through Gmail SMTP:', error.message);
-    throw new Error(error.message || 'Failed to dispatch email via Nodemailer Gmail Transport.');
+    console.error('[SMTP Debug] Error sending email through Gmail SMTP:', error.message);
+    throw new Error(`Failed to send email: ${error.message}. Please verify your network and Gmail App Password.`);
   }
 };
