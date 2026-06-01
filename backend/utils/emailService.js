@@ -1,31 +1,20 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 /**
- * Sends a premium OTP email using Nodemailer with Gmail SMTP.
+ * Sends a premium OTP email using Brevo's HTTPS REST API.
  * @param {string} toEmail - The recipient's email address.
  * @param {string} otpCode - The 6-digit verification code.
  * @returns {Promise<boolean>}
  */
 exports.sendOTPEmail = async (toEmail, otpCode) => {
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
-  if (!emailUser || !emailPass) {
-    console.error('Error: EMAIL_USER or EMAIL_PASS is not defined in backend environment variables.');
-    throw new Error('Email verification is currently unavailable. Please check your backend environment configuration.');
-  }
+  const apiKey = process.env.BREVO_API_KEY;
+  const emailUser = 'mmm04opensooq@gmail.com'; // Your verified Brevo sender email
 
-  console.log(`[SMTP Debug] Creating Nodemailer Gmail transport for ${emailUser} using service: 'gmail'...`);
-  // Create transporter using Gmail SMTP service with 15-second timeouts to prevent latency blocks
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: emailUser,
-      pass: emailPass,
-    },
-    connectionTimeout: 15000, // 15 seconds
-    greetingTimeout: 15000,    // 15 seconds
-    socketTimeout: 15000,      // 15 seconds
-  });
+  // Fallback to console logs bypass if API key is missing
+  if (!apiKey) {
+    console.warn('[Brevo Debug] Warning: BREVO_API_KEY is not defined in environment variables.');
+    return triggerBypass(toEmail, otpCode, 'BREVO_API_KEY is missing');
+  }
 
   // Create a stunning HTML email template matching PathFinder AI styling.
   const htmlContent = `
@@ -155,7 +144,7 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
               <span class="logo-symbol">🧭</span> PathFinder AI
             </h2>
           </div>
- 
+
           <!-- Content Body -->
           <div class="content">
             <h1>Verify Your Email Address</h1>
@@ -176,10 +165,10 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
               If you didn't request this email, you can safely ignore it. Your account will not be created without verification.
             </p>
           </div>
- 
+
           <!-- Divider -->
           <hr class="divider" />
- 
+
           <!-- Footer Area -->
           <div class="footer">
             <p class="footer-text">
@@ -192,39 +181,65 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
     </body>
     </html>
   `;
- 
-  const mailOptions = {
-    from: emailUser,
-    to: toEmail,
-    subject: `${otpCode} is your PathFinder AI verification code`,
-    html: htmlContent,
-  };
- 
+
   try {
-    console.log(`[SMTP Debug] Attempting to dispatch OTP email to ${toEmail}...`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Successfully sent verification OTP email to ${toEmail} via Gmail (Message ID: ${info.messageId})`);
-    return true;
-  } catch (error) {
-    console.error('[SMTP Debug] Error sending email through Gmail SMTP:', error.message);
+    console.log(`[Brevo Debug] Attempting to dispatch OTP email to ${toEmail} via HTTPS API...`);
     
-    // Check if we want to allow testing bypass (enabled by default on SMTP failure)
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      {
+        sender: {
+          name: 'PathFinder AI',
+          email: emailUser,
+        },
+        to: [
+          {
+            email: toEmail,
+          },
+        ],
+        subject: `${otpCode} is your PathFinder AI verification code`,
+        htmlContent: htmlContent,
+      },
+      {
+        headers: {
+          'accept': 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json',
+        },
+      }
+    );
+
+    if (response.status === 200 || response.status === 201 || response.status === 202) {
+      console.log(`[Brevo Debug] Successfully sent verification OTP email to ${toEmail} via HTTPS (ID: ${response.data.messageId})`);
+      return true;
+    } else {
+      console.error('[Brevo Debug] Unexpected response status from Brevo API:', response.status, response.data);
+      throw new Error('Brevo API returned unexpected status.');
+    }
+  } catch (error) {
+    const errorDetails = error.response?.data?.message || error.message || '';
+    console.error('[Brevo Debug] Error sending email through Brevo API:', errorDetails);
+    
+    // Check if we want to allow testing bypass (enabled by default on sending failure)
     const allowBypass = process.env.ALLOW_OTP_BYPASS !== 'false';
     
     if (allowBypass) {
-      console.warn('\n==================================================');
-      console.warn('⚠️  RENDER SMTP PORT BLOCKED / EMAIL SENDING FAILED');
-      console.warn(`Could not deliver email to: ${toEmail}`);
-      console.warn(`Error: ${error.message}`);
-      console.warn('\n🔑 [TESTING BYPASS ACTIVE]');
-      console.warn(`Copy this verification OTP code: ${otpCode}`);
-      console.warn('Paste it in the signup screen to complete the registration.');
-      console.warn('==================================================\n');
-      
-      // Return true to let the signup flow succeed in the UI!
-      return true;
+      return triggerBypass(toEmail, otpCode, errorDetails);
     }
     
-    throw new Error(`Failed to send email: ${error.message}. Please verify your network and Gmail App Password.`);
+    throw new Error(errorDetails || 'Failed to dispatch email via Brevo API.');
   }
 };
+
+// Helper function to show a beautiful console log for testing bypass
+function triggerBypass(toEmail, otpCode, reason) {
+  console.warn('\n==================================================');
+  console.warn('⚠️  BREVO API SENDING FAILED / BYPASS ACTIVE');
+  console.warn(`Could not deliver email to: ${toEmail}`);
+  console.warn(`Reason: ${reason}`);
+  console.warn('\n🔑 [TESTING BYPASS ACTIVE]');
+  console.warn(`Copy this verification OTP code: ${otpCode}`);
+  console.warn('Paste it in the signup screen to complete the registration.');
+  console.warn('==================================================\n');
+  return true;
+}
