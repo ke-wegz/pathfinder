@@ -14,19 +14,17 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
     throw new Error('Email verification is currently unavailable. Please check your backend environment configuration.');
   }
 
-  console.log(`[SMTP Debug] Creating Nodemailer Gmail transport for ${emailUser}...`);
-  // Create transporter using secure Gmail SMTP on port 465 with 5-second timeouts
+  console.log(`[SMTP Debug] Creating Nodemailer Gmail transport for ${emailUser} using service: 'gmail'...`);
+  // Create transporter using Gmail SMTP service with 15-second timeouts to prevent latency blocks
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL/TLS
+    service: 'gmail',
     auth: {
       user: emailUser,
       pass: emailPass,
     },
-    connectionTimeout: 5000, // 5 seconds
-    greetingTimeout: 5000,    // 5 seconds
-    socketTimeout: 5000,      // 5 seconds
+    connectionTimeout: 15000, // 15 seconds
+    greetingTimeout: 15000,    // 15 seconds
+    socketTimeout: 15000,      // 15 seconds
   });
 
   // Create a stunning HTML email template matching PathFinder AI styling.
@@ -196,7 +194,7 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
   `;
  
   const mailOptions = {
-    from: `"PathFinder AI" <${emailUser}>`,
+    from: emailUser,
     to: toEmail,
     subject: `${otpCode} is your PathFinder AI verification code`,
     html: htmlContent,
