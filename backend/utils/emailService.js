@@ -1,17 +1,27 @@
-const axios = require('axios');
+const nodemailer = require('nodemailer');
 
 /**
- * Sends a premium OTP email using the Resend API.
+ * Sends a premium OTP email using Nodemailer with Gmail SMTP.
  * @param {string} toEmail - The recipient's email address.
  * @param {string} otpCode - The 6-digit verification code.
  * @returns {Promise<boolean>}
  */
 exports.sendOTPEmail = async (toEmail, otpCode) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error('Error: RESEND_API_KEY is not defined in environment variables.');
-    throw new Error('Email verification is currently unavailable. Please contact support.');
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS;
+  if (!emailUser || !emailPass) {
+    console.error('Error: EMAIL_USER or EMAIL_PASS is not defined in backend environment variables.');
+    throw new Error('Email verification is currently unavailable. Please check your backend environment configuration.');
   }
+
+  // Create transporter using Gmail SMTP
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: emailUser,
+      pass: emailPass,
+    },
+  });
 
   // Create a stunning HTML email template matching PathFinder AI styling.
   const htmlContent = `
@@ -179,32 +189,19 @@ exports.sendOTPEmail = async (toEmail, otpCode) => {
     </html>
   `;
 
-  try {
-    const response = await axios.post(
-      'https://api.resend.com/emails',
-      {
-        from: 'PathFinder AI <onboarding@resend.dev>',
-        to: [toEmail],
-        subject: `${otpCode} is your PathFinder AI verification code`,
-        html: htmlContent,
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+  const mailOptions = {
+    from: `"PathFinder AI" <${emailUser}>`,
+    to: toEmail,
+    subject: `${otpCode} is your PathFinder AI verification code`,
+    html: htmlContent,
+  };
 
-    if (response.status === 200 || response.status === 201) {
-      console.log(`Successfully sent verification OTP email to ${toEmail} (ID: ${response.data.id})`);
-      return true;
-    } else {
-      console.error('Unexpected response from Resend API:', response.status, response.data);
-      throw new Error('Resend email API returned unexpected status.');
-    }
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Successfully sent verification OTP email to ${toEmail} via Gmail (Message ID: ${info.messageId})`);
+    return true;
   } catch (error) {
-    console.error('Error sending email through Resend API:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to dispatch email via Resend API.');
+    console.error('Error sending email through Gmail SMTP:', error.message);
+    throw new Error(error.message || 'Failed to dispatch email via Nodemailer Gmail Transport.');
   }
 };
