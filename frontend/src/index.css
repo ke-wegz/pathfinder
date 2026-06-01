@@ -245,3 +245,11 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Force transparency on all page wrappers so the moving signature gradient shines through globally */
+.min-h-screen,
+.min-h-full,
+.h-screen,
+.w-full.min-h-full {
+  background-color: transparent !important;
+}
+
