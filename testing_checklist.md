@@ -94,3 +94,50 @@ Use this checklist to systematically verify every feature, visual transition, an
 * [ ] Open the browser's developer console (F12) and inspect the **Network** tab.
 * [ ] Check all API requests (`/api/users/profile`, `/api/goals`, `/api/interview`). Verify that they respond with `200` or `201` status codes.
 * [ ] Confirm that error responses (such as a failed API request) do not cause a full-page crash, but show clear user-friendly Toast or Alert notifications.
+
+---
+
+## 🔒 6. Administrator Portal & Access Control Checks
+
+### A. Admin Onboarding (CLI)
+* [ ] Register a standard account (e.g. `admin@test.com`) via signup page.
+* [ ] Open the backend terminal and run the promotion command:
+  `node promoteUser.js admin@test.com`
+* [ ] Verify that the console output confirms success and that the document under `users/` in Firestore has its `role` updated to `"Admin"`.
+
+### B. Admin Sign In Portal (`/admin/login`)
+* [ ] **Landing Page Navigation:** Click the "Admin Sign In" button in the landing page navbar/CTA. Verify it routes to `/admin/login`.
+* [ ] **Casing & Caching:** Log in using a standard non-admin account. Verify it logs in, validates the user role, signs the user out immediately, and displays "Access denied: User is not an administrator."
+* [ ] **Success Flow:** Log in using the promoted admin account (`admin@test.com`). Verify that the login works, and after a brief loading state (waiting for profile data), it routes to `/admin/dashboard`.
+
+### C. Access Protection & Guard (`AdminRoute`)
+* [ ] Log out of your admin account. Try to directly type `/admin/dashboard` or `/admin/users` in the URL bar.
+* [ ] **Expected:** Verify that the system redirects you immediately to `/admin/login`.
+* [ ] Log in as a standard user. Try to directly navigate to `/admin/dashboard` in the URL bar.
+* [ ] **Expected:** Verify that the app catches the lack of credentials, displays the redirect logic, and redirects you back to `/admin/login` showing the access denied banner.
+
+### D. Admin Sidebar Layout
+* [ ] Toggle the Sidebar items. Verify that clicking "Dashboard", "Manage Users", "Manage Experts", "Manage Resources", and "Analytics Charts" routes to the respective views.
+* [ ] Click "Back to App". Verify it takes you to the standard dashboard.
+* [ ] Click "Sign Out". Verify it signs you out of Firebase and returns you to `/admin/login`.
+* [ ] Resize the browser to mobile. Verify that the hamburger menu displays, toggles the mobile sidebar drawer open/close, and backdrop clicks close the drawer.
+
+### E. User & Expert Management Panels
+* [ ] **Disable/Enable Account:** Open "Manage Users", locate a standard user, and click "Disable". Verify the modal confirmation popup, confirm, and verify the user status tag changes to "Disabled". Verify that the disabled user cannot log in. Enable them and check that they can log in again.
+* [ ] **Delete Account:** Click "Delete Account" on a user. Confirm and verify the user is deleted from Firebase Auth, Firestore `users`, `profiles`, and all related collections.
+* [ ] **Expert Onboarding:** Open "Manage Experts", click "Onboard New Expert", fill out Name, Email, Password, Skills, and Education. Submit and check that they are registered in Firebase Auth and Firestore with the role `"Expert"`.
+* [ ] **Remove Expert:** Click "Remove Expert" on an expert user card, confirm, and check that their account is deleted.
+
+### F. Learning Resources CRUD & Fallback
+* [ ] **On recommendations page fallback:** Log in as a standard user who has NOT taken the AI Interview (no recommendations). Open `/resources`. Verify that the page loads the live database resources added by the Admin instead of static mock resources.
+* [ ] **Admin CRUD:** Open "Manage Resources", create a new resource, fill in title, provider, select type, direct URL, and topics. Submit and verify it appears.
+* [ ] **Edit & Delete:** Edit the resource and verify updates. Delete it and verify it's removed.
+* [ ] **Link navigation:** Click "View Resource" on the resource card in `/resources`. Verify it navigates directly to the database URL instead of performing a Google search.
+
+### G. Analytics Charts
+* [ ] Navigate to "Analytics Charts".
+* [ ] Verify the **Daily API Requests** area chart renders with a purple gradient timeline.
+* [ ] Verify the **Top API Routes** horizontal bar chart renders the top requested endpoints.
+* [ ] Verify the **User Roles Distribution** donut pie chart correctly splits Admin, Expert, and Standard users.
+* [ ] Verify the **Goal Completion Rate** donut pie chart shows completed vs active goal counts.
+* [ ] Toggle dark/light mode and Arabic/English languages. Verify that Recharts styles and labels render properly in all modes.
