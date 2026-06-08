@@ -6,8 +6,11 @@ import AdminLayout from './AdminLayout';
 
 const AdminRoute = ({ children }) => {
   const { user, profile, loading } = useAuth();
+  
+  // Profile is still loading if the user is signed in but the profile fields are not yet fetched
+  const isProfileLoading = user && !profile?.email;
 
-  if (loading) {
+  if (loading || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
