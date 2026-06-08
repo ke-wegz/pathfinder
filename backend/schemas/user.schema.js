@@ -15,9 +15,16 @@ const resetPasswordSchema = Joi.object({
   password: Joi.string().required().min(6)
 });
 
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().required().min(6)
+});
+
 module.exports = {
   registerSchema,
   forgotPasswordOtpSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  changePasswordSchema
 };
+
 

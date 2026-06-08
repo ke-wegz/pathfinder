@@ -3,6 +3,8 @@ const ApiResponse = require('../../utils/apiResponse');
 const userService = require('./user.service');
 const { db, admin } = require('../../firebase');
 const emailService = require('../../utils/emailService');
+const axios = require('axios');
+
 
 // @desc    Register a new user profile
 // @route   POST /api/users/register
@@ -214,6 +216,47 @@ exports.resetPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, null, 'Password reset successfully'));
 });
+
+// @desc    Change logged in user's password
+// @route   POST /api/users/change-password
+// @access  Private
+exports.changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Please provide both current and new passwords' });
+  }
+
+  const email = req.user.email;
+  const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAUJ9q_dnKYWX0bE0-M9LMS91fKRdAUc0o';
+
+  // Verify the current password by signing in to Firebase Auth REST API
+  try {
+    await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+      email,
+      password: currentPassword,
+      returnSecureToken: true
+    });
+  } catch (error) {
+    const firebaseErrorMessage = error.response?.data?.error?.message;
+    console.error('Firebase sign-in verification failed:', firebaseErrorMessage || error.message);
+    if (firebaseErrorMessage === 'INVALID_PASSWORD') {
+      return res.status(400).json({ success: false, message: 'Incorrect current password' });
+    }
+    return res.status(400).json({ success: false, message: 'Current password verification failed' });
+  }
+
+  // Update password in Firebase Auth
+  try {
+    await admin.auth().updateUser(req.user.uid, { password: newPassword });
+  } catch (authError) {
+    console.error('Firebase Auth password update failed:', authError);
+    return res.status(500).json({ success: false, message: 'Failed to update password. Please try again.' });
+  }
+
+  res.status(200).json(new ApiResponse(200, null, 'Password updated successfully'));
+});
+
 
 
 
