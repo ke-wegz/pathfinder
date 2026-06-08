@@ -103,7 +103,8 @@ const ResourceHub = () => {
         );
     }, []);
 
-    const getResourceUrl = useCallback((title, provider) => {
+    const getResourceUrl = useCallback((title, provider, directUrl) => {
+        if (directUrl) return directUrl;
         const q = encodeURIComponent(`${title} ${provider}`);
         return `https://www.google.com/search?q=${q}`;
     }, []);
@@ -161,16 +162,56 @@ const ResourceHub = () => {
                     rating: resource.rating || null,
                     description: resource.description || rec.reason || '',
                     tags: [rec.title || 'Career Path'],
-                    path: rec.title || 'Career Path'
+                    path: rec.title || 'Career Path',
+                    url: resource.url || null
                 }));
             });
 
             if (pathResources.length > 0) {
                 setResources(pathResources);
                 setCustomResourcesLoaded(true);
+            } else {
+                // FALLBACK: Load from the actual learning_resources collection in DB
+                const dbRes = await api.get('/resources');
+                if (dbRes.data && Array.isArray(dbRes.data.data) && dbRes.data.data.length > 0) {
+                    const formattedDbResources = dbRes.data.data.map(res => ({
+                        id: res.resourceId || res._id,
+                        type: res.type ? (res.type.charAt(0).toUpperCase() + res.type.slice(1)) : 'Course',
+                        title: res.name || res.title,
+                        provider: res.provider || '',
+                        description: res.description || '',
+                        tags: res.topics || [],
+                        url: res.url || ''
+                    }));
+                    setResources(formattedDbResources);
+                } else {
+                    setResources(STATIC_RESOURCES);
+                }
+                setCustomResourcesLoaded(false);
             }
         } catch (error) {
             console.error('Error loading recommendation resources:', error);
+            // Fallback load on error
+            try {
+                const dbRes = await api.get('/resources');
+                if (dbRes.data && Array.isArray(dbRes.data.data) && dbRes.data.data.length > 0) {
+                    const formattedDbResources = dbRes.data.data.map(res => ({
+                        id: res.resourceId || res._id,
+                        type: res.type ? (res.type.charAt(0).toUpperCase() + res.type.slice(1)) : 'Course',
+                        title: res.name || res.title,
+                        provider: res.provider || '',
+                        description: res.description || '',
+                        tags: res.topics || [],
+                        url: res.url || ''
+                    }));
+                    setResources(formattedDbResources);
+                } else {
+                    setResources(STATIC_RESOURCES);
+                }
+            } catch (err) {
+                setResources(STATIC_RESOURCES);
+            }
+            setCustomResourcesLoaded(false);
         }
     }, [extractRecommendations]);
 
@@ -290,7 +331,7 @@ const ResourceHub = () => {
                                 </div>
                                 <div className="tooltip-container">
                                     <a
-                                        href={getResourceUrl(featuredResource.title, featuredResource.provider)}
+                                        href={getResourceUrl(featuredResource.title, featuredResource.provider, featuredResource.url)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-10 h-10 inline-flex items-center justify-center rounded-lg bg-white text-primary-600 hover:bg-gray-100 transition-colors"
@@ -354,7 +395,7 @@ const ResourceHub = () => {
 
                                                         <div className="tooltip-container">
                                                             <a
-                                                                href={getResourceUrl(resource.title, resource.provider)}
+                                                                href={getResourceUrl(resource.title, resource.provider, resource.url)}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="p-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center justify-center"
@@ -414,7 +455,7 @@ const ResourceHub = () => {
 
                                             <div className="tooltip-container">
                                                 <a
-                                                    href={getResourceUrl(resource.title, resource.provider)}
+                                                    href={getResourceUrl(resource.title, resource.provider, resource.url)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center justify-center"
