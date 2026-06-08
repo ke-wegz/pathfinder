@@ -12,6 +12,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Log API usage dynamically in Firestore
+const apiUsageLogger = require('./middleware/apiUsageLogger');
+app.use('/api', apiUsageLogger);
+
 // Mount routers
 app.use('/api/users', require('./modules/users/user.routes'));
 app.use('/api/goals', require('./modules/goals/goal.routes'));
@@ -24,6 +28,7 @@ app.use('/api/feedback', require('./modules/feedback/feedback.routes'));
 app.use('/api/privacy', require('./modules/privacy/privacy.routes'));
 app.use('/api/cv', require('./modules/cv/cv.routes'));
 app.use('/api/jobs', require('./modules/jobs/jobs.routes'));
+app.use('/api/admin', require('./modules/admin/admin.routes'));
 
 // Basic health check route
 app.get('/health', (req, res) => {

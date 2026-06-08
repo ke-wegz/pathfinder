@@ -1,18 +1,65 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Rules for users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // Rules for profiles collection
+    match /profiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // Rules for learning_resources collection
+    match /learning_resources/{resourceId} {
+      allow read: if true; // anyone can read resources
+      allow write: if isAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Expert' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'expert')
+      );
+    }
+
+    // Rules for OTPs (used during signup when not authenticated yet)
+    match /otps/{email} {
+      allow read, write: if true;
+    }
+
+    // Rules for API Logs (only admins can read/write them)
+    match /api_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Fallback/recursive rules for user-specific collections (goals, recommendations, cvs, notifications, sessions)
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 12, 31);
+      allow read, write: if isAuthenticated() && (
+        resource == null || 
+        resource.data.userId == request.auth.uid || 
+        resource.data.userID == request.auth.uid || 
+        isAdmin()
+      );
     }
   }
 }

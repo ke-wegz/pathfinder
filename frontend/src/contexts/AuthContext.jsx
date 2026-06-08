@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
             setProfile({
               name: userData.name || '',
               email: userData.email || '',
+              role: userData.role || 'standard',
               phone: userData.phone || '',
               location: userData.location || '',
               education: Array.isArray(userData.education)

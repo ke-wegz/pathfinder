@@ -7,6 +7,15 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 
+// Import Admin components & pages
+import AdminRoute from './components/AdminRoute';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminExperts from './pages/admin/Experts';
+import AdminResources from './pages/admin/Resources';
+import AdminAnalytics from './pages/admin/Analytics';
+
 
 // Import page components
 import Index from './pages/Index';
@@ -66,6 +75,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/about" element={<About />} />
@@ -170,6 +180,33 @@ const AppRoutes = () => {
             <Settings />
           </MainLayout>
         </ProtectedRoute>
+      } />
+
+      {/* Protected Admin Routes */}
+      <Route path="/admin/dashboard" element={
+        <AdminRoute>
+          <AdminDashboard />
+        </AdminRoute>
+      } />
+      <Route path="/admin/users" element={
+        <AdminRoute>
+          <AdminUsers />
+        </AdminRoute>
+      } />
+      <Route path="/admin/experts" element={
+        <AdminRoute>
+          <AdminExperts />
+        </AdminRoute>
+      } />
+      <Route path="/admin/resources" element={
+        <AdminRoute>
+          <AdminResources />
+        </AdminRoute>
+      } />
+      <Route path="/admin/analytics" element={
+        <AdminRoute>
+          <AdminAnalytics />
+        </AdminRoute>
       } />
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -259,6 +259,9 @@ const Index = () => {
                                 </div>
                             ) : (
                                 <>
+                                    <Link to="/admin/login" className="text-sm font-medium text-gray-650 dark:text-gray-300 hover:text-primary-600 transition-colors">
+                                        {t('Admin Sign In')}
+                                    </Link>
                                     <Link to="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 transition-colors">
                                         {t('Log in')}
                                     </Link>
@@ -364,6 +367,9 @@ const Index = () => {
                                 </>
                             ) : (
                                 <>
+                                    <Link to="/admin/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
+                                        {t('Admin Sign In')}
+                                    </Link>
                                     <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
                                         {t('Log in')}
                                     </Link>
@@ -544,6 +550,13 @@ const Index = () => {
                             >
                                 <LogIn size={20} />
                                 {t('Sign In')}
+                            </Link>
+                            <Link
+                                to="/admin/login"
+                                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-red-650 hover:bg-red-750 text-white border border-red-500/30 font-semibold transition-all hover:scale-105 shadow-lg shadow-red-600/25"
+                            >
+                                <LogIn size={20} />
+                                {t('Admin Sign In')}
                             </Link>
                         </div>
                     </div>
