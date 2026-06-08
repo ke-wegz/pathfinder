@@ -28,4 +28,9 @@ router.delete('/resources/:id', adminController.deleteResource);
 // Analytics (1 route)
 router.get('/analytics', adminController.getAnalytics);
 
+// Community management (3 routes)
+router.get('/community/posts', adminController.communityPostsList);
+router.delete('/community/posts/:id', adminController.deleteCommunityPost);
+router.delete('/community/posts/:postId/comments/:commentId', adminController.deleteCommunityComment);
+
 module.exports = router;

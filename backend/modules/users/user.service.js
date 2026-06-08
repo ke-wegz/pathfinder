@@ -250,7 +250,44 @@ exports.deleteUserAccount = async (uid) => {
   batch.delete(userRef);
   batch.delete(profileRef);
 
+  // 7. Delete community posts by this user and all comments on them
+  const postsSnapshot = await db.collection('community').where('userID', '==', uid).get();
+  const deletedPostIds = new Set();
+  postsSnapshot.docs.forEach(doc => {
+    deletedPostIds.add(doc.id);
+    batch.delete(doc.ref);
+  });
+
+  // 8. Delete comments written by this user
+  const userCommentsSnapshot = await db.collection('comments').where('userID', '==', uid).get();
+  const commentPostCountsToDecrement = {};
+  
+  userCommentsSnapshot.docs.forEach(doc => {
+    const commentData = doc.data();
+    batch.delete(doc.ref);
+    if (commentData.postID && !deletedPostIds.has(commentData.postID)) {
+      commentPostCountsToDecrement[commentData.postID] = (commentPostCountsToDecrement[commentData.postID] || 0) + 1;
+    }
+  });
+
+  // 9. Update comments_count on other users' posts where comments were deleted
+  for (const [postId, decrementAmount] of Object.entries(commentPostCountsToDecrement)) {
+    const postRef = db.collection('community').doc(postId);
+    batch.update(postRef, {
+      comments_count: admin.firestore.FieldValue.increment(-decrementAmount)
+    });
+  }
+
+  // 10. Delete comments on posts authored by this user
+  for (const postId of deletedPostIds) {
+    const postCommentsSnapshot = await db.collection('comments').where('postID', '==', postId).get();
+    postCommentsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+  }
+
   await batch.commit();
+
 
   try {
     await admin.auth().deleteUser(uid);

@@ -148,6 +148,9 @@ const Dashboard = () => {
               <Link to="/admin/resources?add=true" className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white dark:bg-gray-700 dark:hover:bg-gray-650 text-xs font-bold rounded-lg shadow-sm hover:shadow transition-all">
                 {t('Add Learning Resource')}
               </Link>
+              <Link to="/admin/community" className="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition-all">
+                {t('Moderate Community')}
+              </Link>
               <Link to="/admin/analytics" className="px-4 py-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-550 dark:hover:bg-gray-750 text-xs font-bold rounded-lg transition-all">
                 {t('Inspect API Analytics')}
               </Link>

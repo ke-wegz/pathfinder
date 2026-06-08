@@ -4,7 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, BarChart3,
-  LogOut, Sun, Moon, Globe, ArrowLeft, Menu, X, ShieldAlert
+  LogOut, Sun, Moon, Globe, ArrowLeft, Menu, X, ShieldAlert,
+  MessageSquare
 } from 'lucide-react';
 
 const AdminLayout = ({ children }) => {
@@ -46,7 +47,9 @@ const AdminLayout = ({ children }) => {
     { name: t('Manage Users'), path: '/admin/users', icon: Users },
     { name: t('Manage Experts'), path: '/admin/experts', icon: GraduationCap },
     { name: t('Manage Resources'), path: '/admin/resources', icon: BookOpen },
+    { name: t('Manage Community'), path: '/admin/community', icon: MessageSquare },
     { name: t('Analytics Charts'), path: '/admin/analytics', icon: BarChart3 }
+
   ];
 
   const dir = i18n.language === 'ar' ? 'rtl' : 'ltr';

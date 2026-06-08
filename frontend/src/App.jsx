@@ -15,6 +15,8 @@ import AdminUsers from './pages/admin/Users';
 import AdminExperts from './pages/admin/Experts';
 import AdminResources from './pages/admin/Resources';
 import AdminAnalytics from './pages/admin/Analytics';
+import AdminCommunity from './pages/admin/Community';
+
 
 
 // Import page components
@@ -208,6 +210,12 @@ const AppRoutes = () => {
           <AdminAnalytics />
         </AdminRoute>
       } />
+      <Route path="/admin/community" element={
+        <AdminRoute>
+          <AdminCommunity />
+        </AdminRoute>
+      } />
+
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

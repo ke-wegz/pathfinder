@@ -2,6 +2,7 @@ const { db, admin } = require('../../firebase');
 const asyncHandler = require('../../utils/asyncHandler');
 const userService = require('../users/user.service');
 const resourceService = require('../resources/resource.service');
+const communityService = require('../community/community.service');
 
 // 1. List Users
 exports.usersList = asyncHandler(async (req, res) => {
@@ -261,3 +262,55 @@ exports.getAnalytics = asyncHandler(async (req, res) => {
     }
   });
 });
+
+// 13. List Community Posts (Admin)
+exports.communityPostsList = asyncHandler(async (req, res) => {
+  const posts = await communityService.getAllPosts(req.query);
+  res.status(200).json({ success: true, data: posts });
+});
+
+// 14. Delete Community Post (Admin - bypass owner check)
+exports.deleteCommunityPost = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const docRef = db.collection('community').doc(id);
+  const doc = await docRef.get();
+  
+  if (!doc.exists) {
+    return res.status(404).json({ success: false, message: 'Post not found' });
+  }
+  
+  await docRef.delete();
+  
+  // delete associated comments
+  const commentsSnapshot = await db.collection('comments').where('postID', '==', id).get();
+  const batch = db.batch();
+  commentsSnapshot.docs.forEach(c => batch.delete(c.ref));
+  await batch.commit();
+  
+  res.status(200).json({ success: true, message: 'Post and associated comments deleted successfully by admin' });
+});
+
+// 15. Delete Community Comment (Admin - bypass owner check)
+exports.deleteCommunityComment = asyncHandler(async (req, res) => {
+  const { postId, commentId } = req.params;
+  const docRef = db.collection('comments').doc(commentId);
+  const doc = await docRef.get();
+  
+  if (!doc.exists || doc.data().postID !== postId) {
+    return res.status(404).json({ success: false, message: 'Comment not found or does not belong to this post' });
+  }
+  
+  await docRef.delete();
+  
+  // Decrement comment count on the post
+  const postRef = db.collection('community').doc(postId);
+  const postDoc = await postRef.get();
+  if (postDoc.exists) {
+    await postRef.update({
+      comments_count: admin.firestore.FieldValue.increment(-1)
+    });
+  }
+  
+  res.status(200).json({ success: true, message: 'Comment deleted successfully by admin' });
+});
+
