@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('./user.controller');
 const { protect } = require('../../middleware/authenticate');
 const validate = require('../../middleware/validate');
-const { registerSchema } = require('../../schemas/user.schema');
+const { registerSchema, forgotPasswordOtpSchema, resetPasswordSchema } = require('../../schemas/user.schema');
 
 // Profile creation route after Firebase Auth
 router.post('/register', protect, validate(registerSchema), userController.registerUser);
@@ -11,6 +11,9 @@ router.post('/register', protect, validate(registerSchema), userController.regis
 // OTP routes (public)
 router.post('/otp/send', userController.sendOTP);
 router.post('/otp/verify', userController.verifyOTP);
+router.post('/otp/send-forgot-password', validate(forgotPasswordOtpSchema), userController.sendForgotPasswordOTP);
+router.post('/otp/reset-password', validate(resetPasswordSchema), userController.resetPassword);
+
 
 // Profile fetch route during login (if needed explicitly)
 router.post('/login', protect, userController.loginUser);

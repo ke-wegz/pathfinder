@@ -5,6 +5,8 @@ import { useAuth, AuthProvider } from './contexts/AuthContext';
 import MainLayout from './components/MainLayout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+
 
 // Import page components
 import Index from './pages/Index';
@@ -65,6 +67,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/terms" element={<Terms />} />

@@ -6,6 +6,18 @@ const registerSchema = Joi.object({
   role: Joi.string().valid('Standard', 'Expert', 'Admin').optional()
 });
 
+const forgotPasswordOtpSchema = Joi.object({
+  email: Joi.string().required().email()
+});
+
+const resetPasswordSchema = Joi.object({
+  email: Joi.string().required().email(),
+  password: Joi.string().required().min(6)
+});
+
 module.exports = {
-  registerSchema
+  registerSchema,
+  forgotPasswordOtpSchema,
+  resetPasswordSchema
 };
+
