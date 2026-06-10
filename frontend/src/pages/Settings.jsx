@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -67,6 +67,13 @@ export default function Settings() {
     profileVisibility: true,
     dataCollection: true,
     shareProgress: false,
+    showLocation: true,
+    showEducation: true,
+    showExperience: true,
+    showSkills: true,
+    showInterests: true,
+    showEmail: true,
+    showPhone: false,
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
@@ -83,7 +90,9 @@ export default function Settings() {
     if (profile) {
       if (profile.language) setLanguage(normalizeLanguage(profile.language));
       if (profile.timezone) setTimezone(profile.timezone);
-      if (profile.privacySettings) setPrivacySettings(profile.privacySettings);
+      if (profile.privacySettings) {
+        setPrivacySettings((prev) => ({ ...prev, ...profile.privacySettings }));
+      }
       if (profile.notificationSettings) setNotificationSettings(profile.notificationSettings);
     }
   }, [user, profile]);
@@ -426,6 +435,137 @@ export default function Settings() {
                         type="checkbox"
                         checked={privacySettings.shareProgress}
                         onChange={() => handlePrivacyToggle('shareProgress')}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Detailed Privacy controls */}
+                <div className={`space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700 transition-all duration-300 ${!privacySettings.profileVisibility ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">{t('settings.profileSharingPreferences', 'Profile Sharing Details')}</h4>
+                  
+                  {/* Location */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showLocation')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showLocationDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showLocation}
+                        onChange={() => handlePrivacyToggle('showLocation')}
+                        disabled={!privacySettings.profileVisibility}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+                  
+                  {/* Education */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showEducation')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showEducationDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showEducation}
+                        onChange={() => handlePrivacyToggle('showEducation')}
+                        disabled={!privacySettings.profileVisibility}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Experience */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showExperience')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showExperienceDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showExperience}
+                        onChange={() => handlePrivacyToggle('showExperience')}
+                        disabled={!privacySettings.profileVisibility}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Skills */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showSkills')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showSkillsDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showSkills}
+                        onChange={() => handlePrivacyToggle('showSkills')}
+                        disabled={!privacySettings.profileVisibility}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Interests */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showInterests')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showInterestsDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showInterests}
+                        onChange={() => handlePrivacyToggle('showInterests')}
+                        disabled={!privacySettings.profileVisibility}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Email */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showEmail')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showEmailDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showEmail}
+                        onChange={() => handlePrivacyToggle('showEmail')}
+                        disabled={!privacySettings.profileVisibility}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="flex items-start justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t('settings.showPhone')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showPhoneDescription')}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacySettings.showPhone}
+                        onChange={() => handlePrivacyToggle('showPhone')}
+                        disabled={!privacySettings.profileVisibility}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>

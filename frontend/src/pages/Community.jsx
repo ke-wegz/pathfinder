@@ -5,7 +5,9 @@ import {
     ChevronRight, Plus, Search, Filter, Award,
     TrendingUp, Clock, ThumbsUp, MessageCircle,
     Send, Image, Link, X, Flag, Edit2, Trash2,
-    Star, Sparkles, User, Calendar
+    Star, Sparkles, User, Calendar,
+    MapPin, GraduationCap, Briefcase, Mail, Phone, Lock,
+    BookOpen, HelpCircle
 } from 'lucide-react';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +26,34 @@ const Community = () => {
     const [commentText, setCommentText] = useState('');
     const [loading, setLoading] = useState(true);
     const commentInputRef = useRef(null);
+
+    // Profile Popup state
+    const [activeProfileUid, setActiveProfileUid] = useState(null);
+    const [activeProfileData, setActiveProfileData] = useState(null);
+    const [loadingProfile, setLoadingProfile] = useState(false);
+    const [profileError, setProfileError] = useState('');
+
+    const handleViewProfile = async (uid) => {
+        if (!uid) return;
+        setActiveProfileUid(uid);
+        setLoadingProfile(true);
+        setProfileError('');
+        setActiveProfileData(null);
+        try {
+            const res = await api.get(`/users/profile/${uid}`);
+            setActiveProfileData(res.data.data);
+        } catch (err) {
+            console.error('Error fetching public profile:', err);
+            setProfileError(t('Unable to load profile. Please try again.'));
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
+
+    const handleCloseProfile = () => {
+        setActiveProfileUid(null);
+        setActiveProfileData(null);
+    };
 
     const topics = ['General', 'Career Advice', 'Resources', 'Success Story', 'Question', 'Interview Tips', 'Job Search'];
 
@@ -232,18 +262,30 @@ const Community = () => {
 
     const topContributors = React.useMemo(() => {
         const counts = new Map();
+        const info = new Map();
         for (const p of posts) {
-            const key = p.authorEmail || p.author || 'Unknown';
-            counts.set(key, (counts.get(key) || 0) + 1);
+            const userId = p.userID || p.authorEmail || p.author || 'Unknown';
+            counts.set(userId, (counts.get(userId) || 0) + 1);
+            if (!info.has(userId)) {
+                info.set(userId, {
+                    name: p.author || 'Anonymous',
+                    avatar: p.authorAvatar || p.author?.charAt(0).toUpperCase() || 'U',
+                    isActualUser: !!p.userID
+                });
+            }
         }
         return Array.from(counts.entries())
             .sort((a, b) => b[1] - a[1])
             .slice(0, 4)
-            .map(([name, contributions]) => ({
-                name,
-                contributions,
-                avatar: name?.charAt(0).toUpperCase() || 'U'
-            }));
+            .map(([id, contributions]) => {
+                const uInfo = info.get(id) || { name: 'Anonymous', avatar: 'U', isActualUser: false };
+                return {
+                    userId: uInfo.isActualUser ? id : null,
+                    name: uInfo.name,
+                    contributions,
+                    avatar: uInfo.avatar
+                };
+            });
     }, [posts]);
 
     return (
@@ -344,12 +386,20 @@ const Community = () => {
                                     {/* Post Header */}
                                     <div className="p-6">
                                         <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                            <div 
+                                                onClick={() => post.userID && handleViewProfile(post.userID)}
+                                                className={`w-10 h-10 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center text-white font-bold flex-shrink-0 ${post.userID ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                                            >
                                                 {post.authorAvatar || post.author.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                    <span className="font-semibold text-gray-900 dark:text-white">{post.author}</span>
+                                                    <span 
+                                                        onClick={() => post.userID && handleViewProfile(post.userID)}
+                                                        className={`font-semibold text-gray-900 dark:text-white ${post.userID ? 'cursor-pointer hover:text-primary-600 transition-colors' : ''}`}
+                                                    >
+                                                        {post.author}
+                                                    </span>
                                                     <span className="text-xs text-gray-500">• {formatTime(post.createdAt)}</span>
                                                     {post.topic && (
                                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${topicColors[post.topic]}`}>
@@ -402,12 +452,20 @@ const Community = () => {
                                                 ) : (
                                                     post.comments?.map(comment => (
                                                         <div key={comment.id} className="flex gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                                            <div 
+                                                                onClick={() => comment.userID && handleViewProfile(comment.userID)}
+                                                                className={`w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-bold flex-shrink-0 ${comment.userID ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                                                            >
                                                                 {comment.authorAvatar || comment.author.charAt(0).toUpperCase()}
                                                             </div>
                                                             <div className="flex-1">
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="font-semibold text-sm text-gray-900 dark:text-white">{comment.author}</span>
+                                                                    <span 
+                                                                        onClick={() => comment.userID && handleViewProfile(comment.userID)}
+                                                                        className={`font-semibold text-sm text-gray-900 dark:text-white ${comment.userID ? 'cursor-pointer hover:text-primary-600 transition-colors' : ''}`}
+                                                                    >
+                                                                        {comment.author}
+                                                                    </span>
                                                                     <span className="text-xs text-gray-500">{formatTime(comment.createdAt)}</span>
                                                                 </div>
                                                                 <p className="text-sm text-gray-700 dark:text-gray-300 break-words">{comment.text}</p>
@@ -495,7 +553,11 @@ const Community = () => {
                             </h3>
                             <div className="space-y-3">
                                 {topContributors.map((contributor, i) => (
-                                    <div key={i} className="flex items-center gap-3">
+                                    <div 
+                                        key={i} 
+                                        onClick={() => contributor.userId && handleViewProfile(contributor.userId)}
+                                        className={`flex items-center gap-3 p-1 rounded-lg transition-colors ${contributor.userId ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50' : ''}`}
+                                    >
                                         <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                                             {contributor.avatar}
                                         </div>
@@ -581,15 +643,177 @@ const Community = () => {
                     </div>
                 </div>
             )}
+            {/* User Profile Popup Modal */}
+            {activeProfileUid && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300 animate-fade-in">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 animate-scale-up relative">
+                        {/* Header Banner */}
+                        <div className="h-24 bg-gradient-to-r from-primary-600 to-secondary-600 relative animate-premium-gradient">
+                            <button
+                                onClick={handleCloseProfile}
+                                className="absolute top-4 right-4 text-white hover:text-gray-200 bg-black/20 hover:bg-black/40 p-1.5 rounded-full transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="px-6 pb-6 relative">
+                            {/* Avatar (overlapping the banner) */}
+                            <div className="absolute -top-10 left-6">
+                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-600 to-secondary-600 border-4 border-white dark:border-gray-800 flex items-center justify-center text-white text-3xl font-bold shadow-md">
+                                    {loadingProfile
+                                        ? '...'
+                                        : (activeProfileData?.name || 'U').charAt(0).toUpperCase()}
+                                </div>
+                            </div>
+
+                            <div className="pt-12">
+                                {loadingProfile ? (
+                                    <div className="space-y-4 py-4">
+                                        <div className="h-6 skeleton rounded w-1/3"></div>
+                                        <div className="h-4 skeleton rounded w-1/2"></div>
+                                        <div className="space-y-2 pt-4">
+                                            <div className="h-3 skeleton rounded w-full"></div>
+                                            <div className="h-3 skeleton rounded w-full"></div>
+                                            <div className="h-3 skeleton rounded w-3/4"></div>
+                                        </div>
+                                    </div>
+                                ) : profileError ? (
+                                    <div className="text-center py-8">
+                                        <X size={32} className="mx-auto text-red-500 mb-3" />
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{profileError}</p>
+                                    </div>
+                                ) : activeProfileData?.isPrivate ? (
+                                    <div className="text-center py-8">
+                                        <Lock size={36} className="mx-auto text-gray-400 dark:text-gray-500 mb-3" />
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{activeProfileData.name}</h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('This user has set their profile to private.')}</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {/* Basic Info */}
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{activeProfileData.name}</h3>
+                                            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                                {activeProfileData.email && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Mail size={14} />
+                                                        <a href={`mailto:${activeProfileData.email}`} className="hover:text-primary-600 transition-colors">{activeProfileData.email}</a>
+                                                    </span>
+                                                )}
+                                                {activeProfileData.phone && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Phone size={14} />
+                                                        <a href={`tel:${activeProfileData.phone}`} className="hover:text-primary-600 transition-colors">{activeProfileData.phone}</a>
+                                                    </span>
+                                                )}
+                                                {activeProfileData.location && (
+                                                    <span className="flex items-center gap-1">
+                                                        <MapPin size={14} />
+                                                        {activeProfileData.location}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Bio / Details */}
+                                        {(activeProfileData.education || activeProfileData.experience) && (
+                                            <div className="space-y-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+                                                {activeProfileData.education && activeProfileData.education.length > 0 && (
+                                                    <div className="flex items-start gap-3">
+                                                        <GraduationCap size={18} className="text-primary-600 mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('Education')}</h4>
+                                                            <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
+                                                                {Array.isArray(activeProfileData.education) ? activeProfileData.education.join(', ') : activeProfileData.education}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {activeProfileData.experience && (
+                                                    <div className="flex items-start gap-3">
+                                                        <Briefcase size={18} className="text-secondary-600 mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('Work Experience')}</h4>
+                                                            <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{activeProfileData.experience}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Skills & Interests */}
+                                        {(activeProfileData.skills?.length > 0 || activeProfileData.interests?.length > 0) && (
+                                            <div className="space-y-3 border-t border-gray-100 dark:border-gray-700 pt-4">
+                                                {activeProfileData.skills?.length > 0 && (
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Skills')}</h4>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {activeProfileData.skills.map((skill, i) => (
+                                                                <span key={i} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-750 dark:text-blue-300 rounded-lg text-xs font-medium border border-blue-100 dark:border-blue-900/30">
+                                                                    {skill}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {activeProfileData.interests?.length > 0 && (
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Interests')}</h4>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {activeProfileData.interests.map((interest, i) => (
+                                                                <span key={i} className="px-2.5 py-1 bg-green-50 dark:bg-green-900/20 text-green-755 dark:text-green-300 rounded-lg text-xs font-medium border border-green-100 dark:border-green-900/30">
+                                                                    {interest}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Goals / Progress */}
+                                        {activeProfileData.goals?.length > 0 && (
+                                            <div className="space-y-3 border-t border-gray-100 dark:border-gray-700 pt-4">
+                                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Goals & Progress')}</h4>
+                                                <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                                                    {activeProfileData.goals.map((goal) => (
+                                                        <div key={goal.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700/60 text-xs gap-3">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${goal.completed ? 'bg-green-500' : 'bg-amber-500'}`} />
+                                                                <span className={`font-medium text-gray-700 dark:text-gray-300 truncate ${goal.completed ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>{goal.text}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                <span className="text-gray-500 font-semibold">{goal.progress}%</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Bottom Actions */}
+                        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/40 border-t border-gray-150 dark:border-gray-700/60 flex justify-end">
+                            <button
+                                onClick={handleCloseProfile}
+                                className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-750 dark:text-gray-250 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold transition-colors"
+                            >
+                                {t('Close')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-// Helper components for icons
-const Briefcase = ({ size, className }) => <Briefcase size={size} className={className} />;
-const BookOpen = ({ size, className }) => <BookOpen size={size} className={className} />;
-const AwardIcon = ({ size, className }) => <Award size={size} className={className} />;
-const HelpCircle = ({ size, className }) => <HelpCircle size={size} className={className} />;
-const SearchIcon = ({ size, className }) => <Search size={size} className={className} />;
 
 export default Community;

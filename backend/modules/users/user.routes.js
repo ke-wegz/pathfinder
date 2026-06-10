@@ -24,6 +24,7 @@ router.post('/login', protect, userController.loginUser);
 
 // Profile routes (protected)
 router.get('/profile', protect, userController.getProfile);
+router.get('/profile/:uid', protect, userController.getPublicProfile);
 router.patch('/profile', protect, userController.updateProfile);
 router.delete('/account', protect, userController.deleteAccount);
 router.delete('/reset-data', protect, userController.resetData);

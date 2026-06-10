@@ -92,7 +92,14 @@ exports.addExpert = asyncHandler(async (req, res) => {
     privacySettings: {
       profileVisibility: true,
       dataCollection: true,
-      shareProgress: false
+      shareProgress: false,
+      showLocation: true,
+      showEducation: true,
+      showExperience: true,
+      showSkills: true,
+      showInterests: true,
+      showEmail: true,
+      showPhone: false
     },
     notificationSettings: {
       emailNotifications: true,

@@ -31,6 +31,86 @@ exports.getProfile = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, user));
 });
 
+// @desc    Get another user's public profile
+// @route   GET /api/users/profile/:uid
+// @access  Private
+exports.getPublicProfile = asyncHandler(async (req, res) => {
+  const targetUid = req.params.uid;
+  const userProfile = await userService.getUserProfile(targetUid);
+  
+  if (!userProfile) {
+    return res.status(404).json(new ApiResponse(404, null, 'User profile not found'));
+  }
+  
+  const privacy = userProfile.privacySettings || {};
+  
+  // If profile visibility is disabled, return a restricted profile
+  if (privacy.profileVisibility === false) {
+    return res.status(200).json(new ApiResponse(200, {
+      uid: targetUid,
+      name: userProfile.name,
+      isPrivate: true,
+      avatar: userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U'
+    }));
+  }
+  
+  // Build public profile based on privacy settings
+  const publicProfile = {
+    uid: targetUid,
+    name: userProfile.name,
+    avatar: userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U',
+    isPrivate: false,
+    createdAt: userProfile.createdAt,
+    lastLogin: userProfile.lastLogin,
+  };
+  
+  if (privacy.showEmail !== false) {
+    publicProfile.email = userProfile.email;
+  }
+  if (privacy.showPhone === true) {
+    publicProfile.phone = userProfile.phone;
+  }
+  if (privacy.showLocation !== false) {
+    publicProfile.location = userProfile.location;
+  }
+  if (privacy.showEducation !== false) {
+    publicProfile.education = userProfile.education;
+  }
+  if (privacy.showExperience !== false) {
+    publicProfile.experience = userProfile.experience;
+  }
+  if (privacy.showSkills !== false) {
+    publicProfile.skills = userProfile.skills;
+  }
+  if (privacy.showInterests !== false) {
+    publicProfile.interests = userProfile.interests;
+  }
+  
+  if (privacy.shareProgress === true) {
+    publicProfile.careerGoals = userProfile.careerGoals;
+    // Fetch user's goals
+    const goalsSnapshot = await db.collection('goals')
+      .where('userId', '==', targetUid)
+      .limit(10)
+      .get();
+    
+    publicProfile.goals = goalsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        text: data.text,
+        category: data.category,
+        priority: data.priority,
+        completed: data.completed || false,
+        progress: data.progress || 0
+      };
+    });
+  }
+  
+  res.status(200).json(new ApiResponse(200, publicProfile));
+});
+
+
 // @desc    Update user profile
 // @route   PATCH /api/users/profile
 // @access  Private
